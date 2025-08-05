@@ -1,5 +1,5 @@
-import SignIn from '@/components/signIn';
-import { User } from '@/components/icons';
+import SignIn from '@/app/components/signIn';
+import { User } from '@/app/components/icons';
 
 export default function LoginPage() {
   return (
