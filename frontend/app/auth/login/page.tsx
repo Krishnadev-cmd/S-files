@@ -1,4 +1,4 @@
-import SignIn from '@/app/components/signIn';
+import { handleSignIn } from '@/app/actions/auth';
 import { User } from '@/app/components/icons';
 
 export default function LoginPage() {
@@ -14,7 +14,9 @@ export default function LoginPage() {
           </h2>
         </div>
         <div className="mt-8">
-          <SignIn />
+          <form action={handleSignIn}>
+            <button type="submit">Sign In with Google</button>
+          </form>
         </div>
       </div>
     </div>
