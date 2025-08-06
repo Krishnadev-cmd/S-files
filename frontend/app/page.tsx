@@ -1,111 +1,103 @@
-'use client';
+"use client"; // This directive marks the component as a Client Component
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+// Reverting to alias imports as configured in tsconfig.json
+import { UploadFilesS3PresignedUrl } from "@/app/components/UploadFilesForm/UploadFilesS3PresignedUrl";
+import { FilesContainer } from "@/app/components/FileContainer";
+import { UploadFilesRoute } from "@/app/components/UploadFilesForm/UploadFilesRoute";
+import { type FileProps } from "@/app/utils/types"; // Using alias for types as well
 
-export default function HomePage() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
+// Define the type for file upload mode
+export type fileUploadMode = "s3PresignedUrl" | "NextjsAPIEndpoint";
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push('/dashboard');
+// Main Page component for the App Router
+export default function Page() {
+  // State to hold the list of files
+  const [files, setFiles] = useState<FileProps[]>([]);
+  // State to manage the current upload mode
+  const [uploadMode, setUploadMode] = useState<fileUploadMode>("s3PresignedUrl");
+
+  // Function to fetch files from the API
+  const fetchFiles = async () => {
+    try {
+      const response = await fetch("/api/files");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const body = (await response.json()) as FileProps[];
+      // Set isDeleting to false for all files after fetching to ensure correct UI state
+      setFiles(body.map((file) => ({ ...file, isDeleting: false })));
+    } catch (error) {
+      console.error("Failed to fetch files:", error);
+      // Optionally, handle UI feedback for fetch error
     }
-  }, [isAuthenticated, isLoading, router]);
+  };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
+  // Effect hook to fetch files on the first render of the component
+  useEffect(() => {
+    fetchFiles().catch(console.error);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
-  if (isAuthenticated) {
-    return null; // Will redirect to dashboard
-  }
+  // Determine if downloads should use presigned URLs based on the current upload mode
+  const downloadUsingPresignedUrl = uploadMode === "s3PresignedUrl";
+
+  // Handler for changing the upload mode
+  const handleModeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setUploadMode(event.target.value as fileUploadMode);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">S-Files</h1>
-          <p className="text-lg text-gray-600 mb-8">
-            AI-powered personal cloud storage with smart features
-          </p>
-        </div>
+    <main className="flex min-h-screen items-center justify-center gap-5 font-mono">
+      <div className="container flex flex-col gap-5 px-3">
+        {/* Component to switch between upload modes */}
+        <ModeSwitchMenu
+          uploadMode={uploadMode}
+          handleModeChange={handleModeChange}
+        />
 
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
-                Welcome to S-Files
-              </h2>
-              
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">✓</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Secure File Storage</h3>
-                    <p className="text-sm text-gray-500">Upload and organize your files securely in the cloud</p>
-                  </div>
-                </div>
+        {/* Conditionally render the appropriate upload form based on the selected mode */}
+        {uploadMode === "s3PresignedUrl" ? (
+          <UploadFilesS3PresignedUrl onUploadSuccess={fetchFiles} />
+        ) : (
+          <UploadFilesRoute onUploadSuccess={fetchFiles} />
+        )}
 
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">✓</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Smart Search</h3>
-                    <p className="text-sm text-gray-500">Find your files quickly with AI-powered search</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">✓</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Easy Sharing</h3>
-                    <p className="text-sm text-gray-500">Share files securely with others</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Link
-                href="/auth/register"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Get Started
-              </Link>
-              
-              <div className="text-center">
-                <span className="text-sm text-gray-600">
-                  Already have an account?{' '}
-                  <Link
-                    href="/auth/login"
-                    className="font-medium text-blue-600 hover:text-blue-500"
-                  >
-                    Sign in
-                  </Link>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Component to display the list of uploaded files */}
+        <FilesContainer
+          files={files}
+          fetchFiles={fetchFiles}
+          setFiles={setFiles}
+          downloadUsingPresignedUrl={downloadUsingPresignedUrl}
+        />
       </div>
-    </div>
+    </main>
+  );
+}
+
+// Type definition for the ModeSwitchMenu component's props
+export type ModeSwitchMenuProps = {
+  uploadMode: fileUploadMode;
+  handleModeChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+};
+
+// Component for switching between file upload modes
+function ModeSwitchMenu({ uploadMode, handleModeChange }: ModeSwitchMenuProps) {
+  return (
+    <ul className="flex items-center justify-center gap-2">
+      <li>
+        <label htmlFor="uploadMode">Upload Mode:</label>
+      </li>
+      <li>
+        <select
+          className="rounded-md border-2 border-gray-300"
+          id="uploadMode"
+          value={uploadMode}
+          onChange={handleModeChange}
+        >
+          <option value="s3PresignedUrl">S3 Presigned Url</option>
+          <option value="NextjsAPIEndpoint">Next.js API Endpoint</option>
+        </select>
+      </li>
+    </ul>
   );
 }

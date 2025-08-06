@@ -1,39 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import NextAuthProvider from "@/contexts/NextAuthProvider";
-import { AuthProvider } from "@/contexts/auth-context";
+import { Inter } from "next/font/google"; // Import the Inter font
+import "@/app/globals.css"; // Import your global CSS (Tailwind CSS)
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// Initialize the Inter font with a subset
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+// Define metadata for your application. This will be used by Next.js for SEO.
 export const metadata: Metadata = {
-  title: "S-Files - Personal Cloud Storage",
-  description: "AI-powered personal cloud storage with smart features",
+  title: "File Uploads with Next.js, Prisma, and PostgreSQL",
+  description: "A comprehensive example of file uploads using Next.js App Router, Prisma, PostgreSQL, and MinIO S3.",
+  icons: [{ rel: "icon", url: "/favicon.ico" }], // Link to your favicon
 };
 
+// RootLayout component that wraps all pages in your application
 export default function RootLayout({
-  children,
-}: Readonly<{
+  children, // The children prop represents the content of the nested pages/routes
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <NextAuthProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </NextAuthProvider>
+      {/* Apply the Inter font to the body, using Tailwind's font-sans variable */}
+      <body className={`font-sans ${inter.variable}`}>
+        {children} {/* Render the content of the current page */}
       </body>
     </html>
   );

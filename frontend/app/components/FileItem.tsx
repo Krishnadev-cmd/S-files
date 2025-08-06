@@ -1,6 +1,6 @@
-import { type FileProps } from "~/utils/types";
-import { LoadSpinner } from "./LoadSpinner";
-import { formatBytes } from "~/utils/fileUploadHelpers";
+import { type FileProps } from "@/app/utils/types";
+import { LoadSpinner } from "@/app/components/LoadSpinner";
+import { formatBytes } from "@/app/utils/fileUploadHelpers";
 
 type FileItemProps = {
   file: FileProps;
