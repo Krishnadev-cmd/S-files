@@ -2,14 +2,21 @@ import { type LoadSpinnerProps } from "@/app/utils/types";
 
 export function LoadSpinner({ size = "medium" }: LoadSpinnerProps) {
   const sizeClasses = {
-    small: "h-6 w-6",
-    medium: "h-16 w-16",
-    large: "h-24 w-24",
+    small: "h-4 w-4",
+    medium: "h-8 w-8", 
+    large: "h-12 w-12",
   };
+  
+  const borderClasses = {
+    small: "border-2",
+    medium: "border-3",
+    large: "border-4",
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center gap-2">
+    <div className="flex flex-col items-center justify-center">
       <div
-        className={`animate-spin rounded-full border-b-2 border-t-2 border-gray-900 ${sizeClasses[size]}`}
+        className={`animate-spin rounded-full border-blue-200 border-t-blue-600 ${sizeClasses[size]} ${borderClasses[size]}`}
       ></div>
     </div>
   );
