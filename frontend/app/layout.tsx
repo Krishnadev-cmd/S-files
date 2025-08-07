@@ -1,26 +1,29 @@
-
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Import the Inter font
-import "@/app/globals.css"; // Import your global CSS (Tailwind CSS)
+import { Inter } from "next/font/google";
+import "@/app/globals.css";
 import AuthProvider from "@/contexts/session-provider";
+import Navbar from "@/app/components/Navbar";
 
-// Initialize the Inter font with a subset
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
+// ✅ Proper way to inject head metadata
+export const metadata: Metadata = {
+  title: "Your App Title",
+  description: "App description here",
+  icons: [{ rel: "icon", url: "/favicon.ico" }],
+};
+
 export default function RootLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
       <body className={`font-sans ${inter.variable}`}>
         <AuthProvider>
-          {children} {/* Render the content of the current page */}
+          <Navbar />
+          {children}
         </AuthProvider>
       </body>
     </html>
