@@ -1,17 +1,29 @@
+"use client";
+
 import Link from "next/link";
 import { LoadSpinner } from "../LoadSpinner";
 import { type UploadFilesFormUIProps } from "@/app/utils/types";
-import { auth } from "@/auth";
+import { useSession } from "next-auth/react";
 import { handleSignOut } from "@/app/actions/auth";
 
-
-export async function UploadFilesFormUI({
+export function UploadFilesFormUI({
   isLoading,
   fileInputRef,
   uploadToServer,
   maxFileSize,
 }: UploadFilesFormUIProps) {
-  const session = await auth();
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center space-y-4">
+          <LoadSpinner size="medium" />
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!session) {
     return (

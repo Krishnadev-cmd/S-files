@@ -56,7 +56,7 @@ export default async function Navbar() {
             </div>
             
             {/* Sign Out Button */}
-            <form action={handleSignOut} method="POST">
+            <form action={handleSignOut}>
               <button
                 type="submit"
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200"

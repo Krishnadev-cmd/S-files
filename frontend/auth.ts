@@ -6,5 +6,16 @@ import {prisma as PrismaClient} from "@/app/server/db"
  
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(PrismaClient),
-  providers: [Google]
+  providers: [Google],
+  session: {
+    strategy: "jwt" // Use JWT instead of database sessions for edge compatibility
+  },
+  callbacks: {
+    async session({ session, token }) {
+      return session;
+    },
+    async jwt({ token, user }) {
+      return token;
+    },
+  },
 })
