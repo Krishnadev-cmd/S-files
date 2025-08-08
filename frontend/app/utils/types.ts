@@ -10,6 +10,7 @@ export type PresignedUrlProp = ShortFileProp & {
 
 export type FileProps = ShortFileProp & {
   id: string;
+  createdAt?: Date;
   isDeleting?: boolean;
 };
 

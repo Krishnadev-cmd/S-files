@@ -70,20 +70,16 @@ export function FileItem({
           
           {/* File Info */}
           <div className="flex-1 min-w-0">
-            <button
-              className="block w-full text-left text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200 truncate"
-              onClick={() => downloadFile(file)}
-              title={file.originalFileName}
-            >
+            <h3 className="text-sm font-medium text-gray-900 truncate" title={file.originalFileName}>
               {file.originalFileName}
-            </button>
+            </h3>
             <div className="flex items-center space-x-2 mt-1">
               <span className="text-xs text-gray-500 font-medium">
                 {formatBytes(file.fileSize)}
               </span>
               <span className="text-xs text-gray-400">•</span>
               <span className="text-xs text-gray-500">
-                Click to download
+                {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : 'Recently uploaded'}
               </span>
             </div>
           </div>
@@ -91,6 +87,19 @@ export function FileItem({
 
         {/* Actions */}
         <div className="flex items-center space-x-2 ml-4">
+          {/* Download Button */}
+          <button
+            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200"
+            onClick={() => downloadFile(file)}
+            title="Download file"
+          >
+            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download
+          </button>
+          
+          {/* Delete Button */}
           <button
             className="inline-flex items-center px-3 py-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => deleteFile(file.id)}

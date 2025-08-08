@@ -16,6 +16,7 @@ export async function GET() {
         id: true,
         originalName: true,
         size: true,
+        createdAt: true,
       },
     });
     
@@ -25,6 +26,7 @@ export async function GET() {
       id: file.id,
       originalFileName: file.originalName,
       fileSize: file.size,
+      createdAt: file.createdAt,
     }));
 
     return NextResponse.json(filesWithProps);

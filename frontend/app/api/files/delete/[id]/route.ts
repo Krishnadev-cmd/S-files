@@ -11,13 +11,12 @@ if (!env.S3_BUCKET_NAME) {
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log("🗑️ Deleting file with ID:", params.id);
+  const { id } = await params;
+  console.log("🗑️ Deleting file with ID:", id);
   
   try {
-    const { id } = params;
-
     if (!id || typeof id !== "string") {
       console.error("❌ Missing or invalid id:", id);
       return Response.json({ message: "Missing or invalid id" }, { status: 400 });

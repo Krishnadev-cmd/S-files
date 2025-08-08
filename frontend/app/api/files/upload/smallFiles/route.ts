@@ -1,6 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import fs from "fs";
-import { IncomingForm, type File } from "formidable";
+import { saveFileInBucket } from "@/app/utils/s3-file-management";
+import { nanoid } from "nanoid";
+import { db } from "@/app/server/db";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -9,88 +9,82 @@ const env = process.env;
 if (!env.S3_BUCKET_NAME) {
   throw new Error("S3_BUCKET_NAME is not defined in environment variables");
 }
-import { saveFileInBucket } from "@/app/utils/s3-file-management";
-import { nanoid } from "nanoid";
-import { db } from "@/app/server/db";
 
 const bucketName = env.S3_BUCKET_NAME;
 
-type ProcessedFiles = Array<[string, File]>;
-
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  let status = 200,
-    resultBody = { status: "ok", message: "Files were uploaded successfully" };
-
-  // Get files from request using formidable
-  const files = await new Promise<ProcessedFiles | undefined>(
-    (resolve, reject) => {
-      const form = new IncomingForm();
-      const files: ProcessedFiles = [];
-      form.on("file", function (field, file) {
-        files.push([field, file]);
-      });
-      form.on("end", () => resolve(files));
-      form.on("error", (err) => reject(err));
-      form.parse(req, () => {
-        //
-      });
-    },
-  ).catch(() => {
-    ({ status, resultBody } = setErrorStatus(status, resultBody));
-    return undefined;
-  });
-
-  if (files?.length) {
-    // Upload files to S3 bucket
-    try {
-      await Promise.all(
-        files.map(async ([_, fileObject]) => {
-          const file = fs.createReadStream(fileObject?.filepath);
-          // generate unique file name
-          const fileName = `${nanoid(5)}-${fileObject?.originalFilename}`;
-          // Save file to S3 bucket and save file info to database concurrently
-          await saveFileInBucket({
-            bucketName,
-            fileName,
-            file,
-          });
-          // save file info to database
-          await db.file.create({
-            data: {
-              bucket: bucketName,
-              fileName,
-              originalName: fileObject?.originalFilename ?? fileName,
-              size: fileObject?.size ?? 0,
-            },
-          });
-        }),
-      );
-    } catch (e) {
-      console.error(e);
-      ({ status, resultBody } = setErrorStatus(status, resultBody));
+export async function POST(request: Request) {
+  console.log("📤 Uploading files via smallFiles API route...");
+  
+  try {
+    const formData = await request.formData();
+    const files = formData.getAll('files') as File[];
+    
+    if (!files || files.length === 0) {
+      console.error("❌ No files provided");
+      return Response.json({ 
+        status: "fail", 
+        message: "No files provided" 
+      }, { status: 400 });
     }
+
+    console.log(`📁 Processing ${files.length} files...`);
+
+    // Upload files to S3 bucket and save to database
+    const results = await Promise.all(
+      files.map(async (file) => {
+        if (!file || file.size === 0) {
+          throw new Error("Invalid file");
+        }
+
+        // Generate unique file name
+        const fileName = `${nanoid(5)}-${file.name}`;
+        console.log(`📝 Processing file: ${file.name} -> ${fileName}`);
+
+        // Convert File to Buffer for S3 upload
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Save file to S3 bucket
+        await saveFileInBucket({
+          bucketName,
+          fileName,
+          file: buffer,
+        });
+        console.log(`✅ File uploaded to S3: ${fileName}`);
+
+        // Save file info to database
+        const dbResult = await db.file.create({
+          data: {
+            bucket: bucketName,
+            fileName,
+            originalName: file.name,
+            size: file.size,
+          },
+        });
+        console.log(`✅ File saved to database: ${dbResult.id}`);
+
+        return {
+          fileName,
+          originalName: file.name,
+          size: file.size,
+          id: dbResult.id,
+        };
+      })
+    );
+
+    console.log(`✅ Successfully processed ${results.length} files`);
+    return Response.json({ 
+      status: "ok", 
+      message: "Files were uploaded successfully",
+      files: results 
+    });
+
+  } catch (error) {
+    console.error("❌ Error uploading files:", error);
+    return Response.json({ 
+      status: "fail", 
+      message: "Upload error",
+      error: error instanceof Error ? error.message : "Unknown error" 
+    }, { status: 500 });
   }
-
-  res.status(status).json(resultBody);
-};
-// Set error status and result body if error occurs
-export function setErrorStatus(
-  status: number,
-  resultBody: { status: string; message: string },
-) {
-  status = 500;
-  resultBody = {
-    status: "fail",
-    message: "Upload error",
-  };
-  return { status, resultBody };
 }
-
-// Disable body parser built-in to Next.js to allow formidable to work
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export default handler;
