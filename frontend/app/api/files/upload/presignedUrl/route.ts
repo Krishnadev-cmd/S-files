@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     // get the files from the request body
     const files = await request.json() as ShortFileProp[];
+    console.log("Received files for presigned URLs:", files);
 
     if (!files?.length) {
       return NextResponse.json(
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("Generated presigned URLs:", presignedUrls.length);
     return NextResponse.json(presignedUrls);
   } catch (error) {
     console.error("Error creating presigned URLs:", error);

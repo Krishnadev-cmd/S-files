@@ -68,7 +68,7 @@ export const uploadToS3 = async (
  * @returns
  */
 export const saveFileInfoInDB = async (presignedUrls: PresignedUrlProp[]) => {
-  return await fetch("/api/files/upload/saveFileInfo", {
+  return await fetch("/api/files/upload/saveInfo", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -89,27 +89,42 @@ export const handleUpload = async (
   presignedUrls: PresignedUrlProp[],
   onUploadSuccess: () => void,
 ) => {
-  const uploadToS3Response = await Promise.all(
-    presignedUrls.map((presignedUrl) => {
-      const file = files.find(
-        (file) =>
-          file.name === presignedUrl.originalFileName &&
-          file.size === presignedUrl.fileSize,
-      );
-      if (!file) {
-        throw new Error("File not found");
-      }
-      return uploadToS3(presignedUrl, file);
-    }),
-  );
+  try {
+    const uploadToS3Response = await Promise.all(
+      presignedUrls.map((presignedUrl) => {
+        const file = files.find(
+          (file) =>
+            file.name === presignedUrl.originalFileName &&
+            file.size === presignedUrl.fileSize,
+        );
+        if (!file) {
+          throw new Error("File not found");
+        }
+        return uploadToS3(presignedUrl, file);
+      }),
+    );
 
-  if (uploadToS3Response.some((res) => res.status !== 200)) {
-    alert("Upload failed");
-    return;
+    if (uploadToS3Response.some((res) => res.status !== 200)) {
+      alert("Upload failed");
+      return;
+    }
+
+    // Save file info to database
+    const saveResponse = await saveFileInfoInDB(presignedUrls);
+    
+    if (!saveResponse.ok) {
+      const errorText = await saveResponse.text();
+      console.error("Database save failed:", errorText);
+      alert("Files uploaded to storage but failed to save to database");
+      return;
+    }
+
+    console.log("Files successfully uploaded and saved to database");
+    onUploadSuccess();
+  } catch (error) {
+    console.error("Upload error:", error);
+    alert("Upload failed: " + (error as Error).message);
   }
-
-  await saveFileInfoInDB(presignedUrls);
-  onUploadSuccess();
 };
 
 /**

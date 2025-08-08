@@ -1,5 +1,5 @@
 
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -11,30 +11,43 @@ if (!env.S3_BUCKET_NAME) {
 import { db } from "@/app/server/db";
 import type { PresignedUrlProp, FileInDBProp } from "@/app/utils/types";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  if (req.method !== "POST") {
-    res.status(405).json({ message: "Only POST requests are allowed" });
-    return;
-  }
+export async function POST(request: NextRequest) {
+  try {
+    const presignedUrls = await request.json() as PresignedUrlProp[];
+    console.log("Received presigned URLs for database save:", presignedUrls);
 
-  const presignedUrls = req.body as PresignedUrlProp[];
+    if (!presignedUrls?.length) {
+      return NextResponse.json(
+        { message: "No files to save" },
+        { status: 400 }
+      );
+    }
 
-  // Get the file name in bucket from the database
-  const saveFilesInfo = await db.file.createMany({
-    data: presignedUrls.map((file: FileInDBProp) => ({
-      bucket: env.S3_BUCKET_NAME,
-      fileName: file.fileNameInBucket,
-      originalName: file.originalFileName,
-      size: file.fileSize,
-    })),
-  });
+    // Save files info to database
+    const saveFilesInfo = await db.file.createMany({
+      data: presignedUrls.map((file: PresignedUrlProp) => ({
+        bucket: env.S3_BUCKET_NAME!,
+        fileName: file.fileNameInBucket,
+        originalName: file.originalFileName,
+        size: file.fileSize,
+      })),
+    });
 
-  if (saveFilesInfo) {
-    res.status(200).json({ message: "Files saved successfully" });
-  } else {
-    res.status(404).json({ message: "Files not found" });
+    console.log("Database save result:", saveFilesInfo);
+
+    if (saveFilesInfo) {
+      return NextResponse.json({ message: "Files saved successfully" });
+    } else {
+      return NextResponse.json(
+        { message: "Failed to save files" },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error("Error saving file info to database:", error);
+    return NextResponse.json(
+      { message: "Failed to save file info to database" },
+      { status: 500 }
+    );
   }
 }
