@@ -1,6 +1,7 @@
 import { type FileProps } from "@/app/utils/types";
 import { LoadSpinner } from "@/app/components/LoadSpinner";
 import { formatBytes } from "@/app/utils/fileUploadHelpers";
+import { useState } from "react";
 
 type FileItemProps = {
   file: FileProps;
@@ -22,6 +23,11 @@ export function FileItem({
   setFiles,
   downloadUsingPresignedUrl,
 }: FileItemProps) {
+  const [showQuestionArea, setShowQuestionArea] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [response, setResponse] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
   async function deleteFile(id: string) {
     setFiles((files: FileProps[]) =>
       files.map((file: FileProps) =>
@@ -54,6 +60,47 @@ export function FileItem({
       window.open(presignedUrl, "_blank");
     } else {
       window.open(`/api/files/download/smallFiles/${file.id}`, "_blank");
+    }
+  };
+
+  const handleGenerateClick = () => {
+    setShowQuestionArea(!showQuestionArea);
+  };
+
+  const handleSubmitQuestion = async () => {
+    if (!question.trim()) return;
+    
+    setIsGenerating(true);
+    setResponse("");
+    
+    try {
+      console.log("🚀 Submitting question to LLM API...");
+      
+      const response = await fetch("/api/llm/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileId: file.id,
+          question: question.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate response");
+      }
+
+      console.log("✅ Received response from LLM API");
+      setResponse(data.response);
+      
+    } catch (error) {
+      console.error("❌ Error submitting question:", error);
+      alert(`Failed to generate response: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -98,7 +145,16 @@ export function FileItem({
             </svg>
             Download
           </button>
-          
+          <button
+            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200"
+            onClick={handleGenerateClick}
+            title="Ask question about this file"
+          >
+            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Generate
+          </button>
           {/* Delete Button */}
           <button
             className="inline-flex items-center px-3 py-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -124,6 +180,73 @@ export function FileItem({
           </button>
         </div>
       </div>
+
+      {/* Question Text Area */}
+      {showQuestionArea && (
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t border-gray-200">
+          <label htmlFor={`question-${file.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+            Ask a question about this file:
+          </label>
+          <textarea
+            id={`question-${file.id}`}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Enter your question about the PDF or file content..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            rows={3}
+          />
+          <div className="flex justify-end space-x-2 mt-3">
+            <button
+              className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+              onClick={() => {
+                setShowQuestionArea(false);
+                setQuestion("");
+                setResponse("");
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!question.trim() || isGenerating}
+              onClick={handleSubmitQuestion}
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                "Submit Question"
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Response Section */}
+      {response && (
+        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center mb-2">
+            <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h4 className="text-sm font-medium text-green-800">AI Response:</h4>
+          </div>
+          <div className="bg-white p-3 rounded-md border border-green-300">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{response}</p>
+          </div>
+          <button
+            className="mt-2 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
+            onClick={() => setResponse("")}
+          >
+            Clear Response
+          </button>
+        </div>
+      )}
 
       {/* Loading Overlay */}
       {file.isDeleting && (
