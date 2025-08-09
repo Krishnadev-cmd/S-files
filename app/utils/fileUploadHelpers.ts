@@ -51,15 +51,32 @@ export const uploadToS3 = async (
   presignedUrl: PresignedUrlProp,
   file: File,
 ) => {
-  const response = await fetch(presignedUrl.url, {
-    method: "PUT",
-    body: file,
-    headers: {
-      "Content-Type": file.type,
-      "Access-Control-Allow-Origin": "*",
-    },
-  });
-  return response;
+  try {
+    console.log(`🔄 Uploading to: ${presignedUrl.url}`);
+    console.log(`📁 File: ${file.name} (${file.size} bytes)`);
+    
+    const response = await fetch(presignedUrl.url, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    });
+    
+    console.log(`📤 Upload response status: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Upload failed: ${response.status} - ${errorText}`);
+      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+    }
+    
+    console.log(`✅ Upload successful`);
+    return response;
+  } catch (error) {
+    console.error(`❌ Upload error:`, error);
+    throw error;
+  }
 };
 
 /**

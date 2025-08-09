@@ -1,70 +1,276 @@
-# S-Files - Secure File Management System
+# S-Files - Modern File Management System
 
-A modern, secure file management platform built with Next.js, featuring Google authentication, multiple upload methods, and enterprise-grade security.
+A comprehensive, secure file management platform built with Next.js 15, featuring Google authentication, cloud storage integration, and modern web technologies.
 
-## 🚀 Features
+## ✨ Features
 
-- **Secure Authentication** - Google OAuth integration with NextAuth.js
-- **Multiple Upload Methods** - S3 Presigned URLs or Next.js API endpoints
-- **Modern UI** - Beautiful, responsive interface with Tailwind CSS
-- **File Management** - Upload, download, and delete files with ease
-- **Database Integration** - PostgreSQL with Prisma ORM
-- **Cloud Storage** - MinIO S3-compatible object storage
-- **Enterprise Security** - Encrypted file storage and secure access controls
+- **🔐 Secure Authentication** - Google OAuth integration with NextAuth.js
+- **☁️ Cloud Storage** - Dual storage support (MinIO for development, Cloudflare R2 for production)
+- **📤 Multiple Upload Methods** - S3 Presigned URLs and direct upload endpoints
+- **🎨 Modern UI** - Beautiful, responsive interface with Tailwind CSS
+- **📁 File Management** - Upload, download, view, and delete files seamlessly
+- **🗄️ Database Integration** - PostgreSQL with Prisma ORM for reliable data management
+- **🚀 Production Ready** - Optimized for Vercel deployment with automatic builds
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS
-- **Authentication**: NextAuth.js with Google Provider
-- **Database**: PostgreSQL with Prisma ORM
-- **File Storage**: MinIO (S3-compatible)
-- **Deployment**: Vercel-ready
+- **Styling**: Tailwind CSS v4
+- **Authentication**: NextAuth.js v5 with Google Provider
+- **Database**: PostgreSQL (Supabase) with Prisma ORM
+- **File Storage**: 
+  - Development: MinIO (S3-compatible)
+  - Production: Cloudflare R2
+- **Deployment**: Vercel with automatic CI/CD
+- **Additional**: AWS S3 SDK, React Hook Form, Zod validation
 
 ## 📋 Prerequisites
 
-Before running this application, make sure you have:
-
-- Node.js 18+ installed
-- PostgreSQL database
-- MinIO server (or AWS S3)
+- Node.js 18+ 
+- PostgreSQL database (Supabase recommended)
 - Google OAuth credentials
+- Cloudflare R2 bucket (for production)
+- Docker (for local MinIO)
 
-## 🔧 Installation
+## � Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Krishnadev-cmd/S-files.git
-   cd S-files
+### 1. Clone and Install
+```bash
+git clone https://github.com/Krishnadev-cmd/S-files.git
+cd S-files
+npm install
+```
+
+### 2. Environment Setup
+
+Create `.env.local` file:
+```env
+# Database (Supabase)
+DATABASE_URL="your-supabase-connection-string"
+
+# NextAuth Configuration
+AUTH_SECRET="your-auth-secret"
+AUTH_GOOGLE_ID="your-google-client-id"
+AUTH_GOOGLE_SECRET="your-google-client-secret"
+
+# Development Storage (MinIO)
+S3_ENDPOINT_LOCAL="localhost"
+S3_PORT="9000"
+S3_ACCESS_KEY="minioadmin"
+S3_SECRET_KEY="minioadmin"
+S3_BUCKET_NAME="sfiles"
+S3_USE_SSL="false"
+
+# Production Storage (Cloudflare R2) - uncomment for production
+# AWS_ACCESS_KEY_ID="your-r2-access-key"
+# AWS_SECRET_ACCESS_KEY="your-r2-secret-key"
+# AWS_REGION="auto"
+# AWS_S3_BUCKET="sfiles"
+# S3_ENDPOINT="https://your-account-id.r2.cloudflarestorage.com"
+```
+
+### 3. Database Setup
+```bash
+# Push database schema
+npx prisma db push
+
+# Generate Prisma client
+npx prisma generate
+```
+
+### 4. Start Development Storage (MinIO)
+```bash
+docker run -d \
+  --name minio-dev \
+  -p 9000:9000 -p 9001:9001 \
+  -e "MINIO_ROOT_USER=minioadmin" \
+  -e "MINIO_ROOT_PASSWORD=minioadmin" \
+  minio/minio server /data --console-address ":9001"
+```
+
+### 5. Run Development Server
+```bash
+npm run dev
+```
+
+Visit http://localhost:3000 to see your application!
+
+## 🔧 Configuration Guide
+
+### Google OAuth Setup
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized origins: `http://localhost:3000` and your production domain
+6. Add redirect URIs: `http://localhost:3000/api/auth/callback/google`
+
+### Supabase Database Setup
+1. Create account at [Supabase](https://supabase.com)
+2. Create a new project
+3. Copy your connection string from Settings > Database
+4. Update `DATABASE_URL` in your environment file
+
+### Cloudflare R2 Setup (Production)
+1. Sign up for [Cloudflare](https://cloudflare.com)
+2. Go to R2 Object Storage
+3. Create a bucket named "sfiles"
+4. Generate API tokens with R2 permissions
+5. Configure CORS policy:
+   ```json
+   [
+     {
+       "AllowedOrigins": ["https://your-domain.com"],
+       "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+       "AllowedHeaders": ["*"],
+       "ExposeHeaders": ["ETag"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
    ```
 
-2. **Install dependencies**
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+1. **Connect GitHub Repository**
    ```bash
-   npm install
+   vercel login
+   vercel --prod
    ```
 
-3. **Set up environment variables**
-   
-   Create a `.env.local` file in the root directory:
-   ```env
-   # Database
-   DATABASE_URL="postgresql://username:password@localhost:5432/s_files_db"
-   
-   # NextAuth.js
-   NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-nextauth-secret-key"
-   
-   # Google OAuth
-   GOOGLE_CLIENT_ID="your-google-client-id"
-   GOOGLE_CLIENT_SECRET="your-google-client-secret"
-   
-   # MinIO Configuration
-   MINIO_ENDPOINT="localhost"
-   MINIO_PORT="9000"
-   MINIO_ACCESS_KEY="your-minio-access-key"
-   MINIO_SECRET_KEY="your-minio-secret-key"
-   MINIO_BUCKET_NAME="s-files-bucket"
-   MINIO_USE_SSL="false"
+2. **Set Environment Variables in Vercel**
+   - Go to your Vercel project dashboard
+   - Add all environment variables from `.env.production`
+   - Make sure to use production URLs and credentials
+
+3. **Automatic Deployment**
+   - Push to main branch triggers automatic deployment
+   - Prisma generates schema automatically during build
+
+### Build Scripts
+```bash
+# Production build
+npm run build
+
+# Start production server
+npm start
+
+# Generate Prisma client
+npx prisma generate
+```
+
+## 📁 Project Structure
+
+```
+S-Files/
+├── app/                    # Next.js 15 app directory
+│   ├── api/               # API routes
+│   │   ├── auth/          # NextAuth endpoints
+│   │   └── files/         # File management APIs
+│   ├── components/        # React components
+│   ├── utils/            # Utility functions
+│   └── globals.css       # Global styles
+├── prisma/               # Database schema
+├── public/               # Static assets
+├── .env.local           # Environment variables
+├── next.config.ts       # Next.js configuration
+├── tailwind.config.ts   # Tailwind configuration
+└── vercel.json          # Vercel deployment config
+```
+
+## 🔐 Security Features
+
+- **Authentication**: Secure Google OAuth with session management
+- **File Upload**: Presigned URLs for direct-to-cloud uploads
+- **Database**: Connection pooling and prepared statements
+- **Environment**: Secure credential management
+- **CORS**: Properly configured cross-origin policies
+
+## 🎯 Usage
+
+### File Upload
+1. Sign in with Google account
+2. Choose upload mode (Small files or Large files)
+3. Select or drag files to upload
+4. Files are automatically uploaded to cloud storage
+5. File metadata saved to database
+
+### File Management
+- **View**: Browse all uploaded files in dashboard
+- **Download**: Generate secure download links
+- **Delete**: Remove files from both storage and database
+- **Search**: Find files by name or type
+
+## 🧪 Development
+
+### Running Tests
+```bash
+# Add test files in __tests__ directory
+npm test
+```
+
+### Database Management
+```bash
+# View database in browser
+npx prisma studio
+
+# Reset database
+npx prisma db push --force-reset
+
+# Generate migration
+npx prisma migrate dev --name init
+```
+
+### MinIO Admin Console
+- Access: http://localhost:9001
+- Credentials: minioadmin / minioadmin
+- Manage buckets and view uploaded files
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Build Fails on Vercel**
+- Ensure `PRISMA_GENERATE_DATAPROXY="true"` is set
+- Check all environment variables are configured
+
+**File Upload Errors**
+- Verify bucket exists and CORS is configured
+- Check storage credentials and endpoint URLs
+
+**Authentication Issues**
+- Verify Google OAuth redirect URIs
+- Ensure AUTH_SECRET is properly set
+
+**Database Connection**
+- Check DATABASE_URL format
+- Verify network access to database
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Supabase](https://supabase.com/) - Database platform
+- [Cloudflare R2](https://developers.cloudflare.com/r2/) - Object storage
+- [NextAuth.js](https://next-auth.js.org/) - Authentication
+- [Prisma](https://prisma.io/) - Database ORM
+- [Tailwind CSS](https://tailwindcss.com/) - Styling framework
+
+---
+
+**Built with ❤️ by [Krishnadev](https://github.com/Krishnadev-cmd)**
    ```
 
 4. **Set up the database**
