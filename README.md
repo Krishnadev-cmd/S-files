@@ -1,38 +1,55 @@
 # S-Files - Modern File Management System
 
-A comprehensive, secure file management platform built with Next.js 15, featuring Google authentication, cloud storage integration, and modern web technologies.
+A comprehensive, production-ready file management platform built with Next.js 15, featuring Google authentication, cloud storage integration, and modern web technologies.
+
+## 🚀 Live Demo
+
+**Production URL**: [https://s-files.vercel.app](https://s-files.vercel.app)
 
 ## ✨ Features
 
-- **🔐 Secure Authentication** - Google OAuth integration with NextAuth.js
-- **☁️ Cloud Storage** - Dual storage support (MinIO for development, Cloudflare R2 for production)
-- **📤 Multiple Upload Methods** - S3 Presigned URLs and direct upload endpoints
-- **🎨 Modern UI** - Beautiful, responsive interface with Tailwind CSS
-- **📁 File Management** - Upload, download, view, and delete files seamlessly
-- **🗄️ Database Integration** - PostgreSQL with Prisma ORM for reliable data management
-- **🚀 Production Ready** - Optimized for Vercel deployment with automatic builds
+- **🔐 Secure Authentication** - Google OAuth integration with NextAuth.js v5 (JWT sessions)
+- **☁️ Dual Cloud Storage** - MinIO for development, Cloudflare R2 for production
+- **📤 Advanced File Upload** - S3 Presigned URLs with CORS support for direct browser uploads
+- **🎨 Beautiful UI** - Modern glass-morphism design with animated backgrounds
+- **📁 Complete File Management** - Upload, download, view, and delete files with real-time feedback
+- **🗄️ Database Integration** - PostgreSQL with Prisma ORM and Prisma Accelerate
+- **🌐 Production Optimized** - Deployed on Vercel with automatic CI/CD
+- **📱 Responsive Design** - Works perfectly on desktop, tablet, and mobile
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS v4
-- **Authentication**: NextAuth.js v5 with Google Provider
-- **Database**: PostgreSQL (Supabase) with Prisma ORM
-- **File Storage**: 
-  - Development: MinIO (S3-compatible)
-  - Production: Cloudflare R2
-- **Deployment**: Vercel with automatic CI/CD
-- **Additional**: AWS S3 SDK, React Hook Form, Zod validation
+### **Frontend**
+- **Next.js 15** - Latest React framework with App Router
+- **React 19** - Modern React with latest features
+- **TypeScript** - Full type safety
+- **Tailwind CSS v4** - Utility-first styling with custom animations
+
+### **Authentication**
+- **NextAuth.js v5** - Modern authentication with JWT sessions
+- **Google OAuth** - Secure Google Sign-In integration
+
+### **Database & Storage**
+- **PostgreSQL** - Robust relational database via Supabase
+- **Prisma ORM** - Type-safe database client with Accelerate
+- **MinIO** - S3-compatible local development storage
+- **Cloudflare R2** - Production cloud storage with global CDN
+
+### **Deployment & DevOps**
+- **Vercel** - Serverless deployment with automatic builds
+- **Docker** - Containerized MinIO for local development
+- **AWS S3 SDK** - Universal S3-compatible storage interface
 
 ## 📋 Prerequisites
 
-- Node.js 18+ 
-- PostgreSQL database (Supabase recommended)
-- Google OAuth credentials
-- Cloudflare R2 bucket (for production)
-- Docker (for local MinIO)
+- **Node.js 18+** and npm/yarn
+- **PostgreSQL database** (Supabase recommended)
+- **Google Cloud Console** account for OAuth
+- **Cloudflare account** for R2 storage
+- **Vercel account** for deployment
+- **Docker** (optional, for local MinIO)
 
-## � Quick Start
+## 🚀 Quick Start
 
 ### 1. Clone and Install
 ```bash
@@ -45,13 +62,16 @@ npm install
 
 Create `.env.local` file:
 ```env
-# Database (Supabase)
-DATABASE_URL="your-supabase-connection-string"
+# Database (Supabase with Prisma Accelerate)
+DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=YOUR_ACCELERATE_API_KEY"
 
 # NextAuth Configuration
-AUTH_SECRET="your-auth-secret"
-AUTH_GOOGLE_ID="your-google-client-id"
-AUTH_GOOGLE_SECRET="your-google-client-secret"
+NEXTAUTH_SECRET="your-generated-secret"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Google OAuth Credentials
+AUTH_GOOGLE_ID="your-google-client-id.apps.googleusercontent.com"
+AUTH_GOOGLE_SECRET="GOCSPX-your-google-client-secret"
 
 # Development Storage (MinIO)
 S3_ENDPOINT_LOCAL="localhost"
@@ -71,7 +91,7 @@ S3_USE_SSL="false"
 
 ### 3. Database Setup
 ```bash
-# Push database schema
+# Push database schema to your PostgreSQL database
 npx prisma db push
 
 # Generate Prisma client
@@ -93,338 +113,216 @@ docker run -d \
 npm run dev
 ```
 
-Visit http://localhost:3000 to see your application!
+Visit **http://localhost:3000** to see your application!
 
-## 🔧 Configuration Guide
+## 🔧 Detailed Configuration
 
 ### Google OAuth Setup
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable Google+ API
-4. Create OAuth 2.0 credentials
-5. Add authorized origins: `http://localhost:3000` and your production domain
-6. Add redirect URIs: `http://localhost:3000/api/auth/callback/google`
+
+1. **Go to Google Cloud Console**: https://console.cloud.google.com/
+2. **Create a new project** or select existing one
+3. **Enable Google+ API** in APIs & Services
+4. **Create OAuth 2.0 credentials**:
+   - Application type: Web application
+   - Authorized redirect URIs:
+     - `http://localhost:3000/api/auth/callback/google` (development)
+     - `https://your-domain.vercel.app/api/auth/callback/google` (production)
+5. **Copy Client ID and Secret** to your `.env` file
 
 ### Supabase Database Setup
-1. Create account at [Supabase](https://supabase.com)
-2. Create a new project
-3. Copy your connection string from Settings > Database
-4. Update `DATABASE_URL` in your environment file
 
-### Cloudflare R2 Setup (Production)
-1. Sign up for [Cloudflare](https://cloudflare.com)
-2. Go to R2 Object Storage
-3. Create a bucket named "sfiles"
-4. Generate API tokens with R2 permissions
-5. Configure CORS policy:
-   ```json
-   [
-     {
-       "AllowedOrigins": ["https://your-domain.com"],
-       "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
-       "AllowedHeaders": ["*"],
-       "ExposeHeaders": ["ETag"],
-       "MaxAgeSeconds": 3600
-     }
-   ]
+1. **Create account** at https://supabase.com/
+2. **Create new project** and wait for setup
+3. **Get connection string** from Settings → Database
+4. **Set up Prisma Accelerate** (optional but recommended):
+   - Go to https://accelerate.prisma.io/
+   - Connect your database
+   - Get Accelerate connection string
+
+### Cloudflare R2 Configuration
+
+1. **Create Cloudflare account** and enable R2
+2. **Create R2 bucket** named `sfiles`
+3. **Generate R2 tokens**:
+   - Go to R2 → Manage R2 API tokens
+   - Create token with Object Read & Write permissions
+4. **Configure CORS policy** in bucket settings:
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://your-domain.vercel.app",
+      "https://*.vercel.app",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag", "x-amz-version-id"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+## 🚀 Production Deployment
+
+### Vercel Deployment
+
+1. **Connect to Vercel**:
+   ```bash
+   npm install -g vercel
+   vercel login
+   vercel
    ```
 
-## 🚀 Deployment
+2. **Set Environment Variables** in Vercel Dashboard:
+   ```env
+   # Database
+   DATABASE_URL=prisma+postgres://accelerate.prisma-data.net/?api_key=...
+   
+   # Authentication
+   NEXTAUTH_SECRET=your-production-secret
+   NEXTAUTH_URL=https://your-app.vercel.app
+   AUTH_GOOGLE_ID=your-google-client-id
+   AUTH_GOOGLE_SECRET=your-google-client-secret
+   
+   # Cloudflare R2 Storage
+   AWS_ACCESS_KEY_ID=your-r2-access-key
+   AWS_SECRET_ACCESS_KEY=your-r2-secret-key
+   AWS_REGION=auto
+   AWS_S3_BUCKET=sfiles
+   S3_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
+   S3_BUCKET_NAME=sfiles
+   S3_PORT=443
+   ```
 
-### Deploy to Vercel
-
-1. **Connect GitHub Repository**
+3. **Deploy**:
    ```bash
-   vercel login
    vercel --prod
    ```
 
-2. **Set Environment Variables in Vercel**
-   - Go to your Vercel project dashboard
-   - Add all environment variables from `.env.production`
-   - Make sure to use production URLs and credentials
+### Update OAuth Redirect URIs
 
-3. **Automatic Deployment**
-   - Push to main branch triggers automatic deployment
-   - Prisma generates schema automatically during build
-
-### Build Scripts
-```bash
-# Production build
-npm run build
-
-# Start production server
-npm start
-
-# Generate Prisma client
-npx prisma generate
-```
+After deployment, update your Google OAuth configuration:
+- Add your production URL: `https://your-app.vercel.app/api/auth/callback/google`
 
 ## 📁 Project Structure
 
 ```
 S-Files/
-├── app/                    # Next.js 15 app directory
+├── app/                    # Next.js App Router
 │   ├── api/               # API routes
 │   │   ├── auth/          # NextAuth endpoints
-│   │   └── files/         # File management APIs
-│   ├── components/        # React components
-│   ├── utils/            # Utility functions
-│   └── globals.css       # Global styles
-├── prisma/               # Database schema
-├── public/               # Static assets
-├── .env.local           # Environment variables
-├── next.config.ts       # Next.js configuration
-├── tailwind.config.ts   # Tailwind configuration
-└── vercel.json          # Vercel deployment config
+│   │   ├── files/         # File management endpoints
+│   │   └── test-db/       # Database testing
+│   ├── auth/              # Authentication pages
+│   ├── components/        # Reusable UI components
+│   ├── server/            # Server-side utilities
+│   └── utils/             # Client-side utilities
+├── prisma/                # Database schema and migrations
+├── public/                # Static assets
+└── README.md             # This file
 ```
 
-## 🔐 Security Features
+## 🔄 Key Workflows
 
-- **Authentication**: Secure Google OAuth with session management
-- **File Upload**: Presigned URLs for direct-to-cloud uploads
-- **Database**: Connection pooling and prepared statements
-- **Environment**: Secure credential management
-- **CORS**: Properly configured cross-origin policies
+### File Upload Process
+1. User selects files in the UI
+2. Frontend requests presigned URLs from `/api/files/upload/presignedUrl`
+3. Files upload directly to storage (MinIO/R2) using presigned URLs
+4. Metadata saves to database via `/api/files/upload/saveInfo`
+5. UI updates with upload progress and completion
 
-## 🎯 Usage
+### Authentication Flow
+1. User clicks "Sign in with Google"
+2. NextAuth.js redirects to Google OAuth
+3. Google redirects back with authorization code
+4. NextAuth.js exchanges code for user profile
+5. JWT token created and stored in secure cookie
+6. User gains access to protected routes
 
-### File Upload
-1. Sign in with Google account
-2. Choose upload mode (Small files or Large files)
-3. Select or drag files to upload
-4. Files are automatically uploaded to cloud storage
-5. File metadata saved to database
+## 🛡️ Security Features
 
-### File Management
-- **View**: Browse all uploaded files in dashboard
-- **Download**: Generate secure download links
-- **Delete**: Remove files from both storage and database
-- **Search**: Find files by name or type
+- **JWT Sessions** - Stateless, secure authentication
+- **CORS Protection** - Properly configured for cross-origin requests
+- **Environment Variables** - Sensitive data stored securely
+- **Presigned URLs** - Direct uploads without exposing credentials
+- **HTTPS Only** - Production enforces secure connections
 
-## 🧪 Development
+## 🎨 UI/UX Features
 
-### Running Tests
+- **Glass-morphism Design** - Modern translucent interfaces
+- **Animated Backgrounds** - Floating gradient blobs
+- **Smooth Transitions** - Butter-smooth hover effects and animations
+- **Responsive Layout** - Works on all device sizes
+- **Real-time Feedback** - Upload progress and error handling
+- **Accessibility** - Proper ARIA labels and keyboard navigation
+
+## 🔧 Development Commands
+
 ```bash
-# Add test files in __tests__ directory
-npm test
+# Development
+npm run dev              # Start dev server
+npm run build           # Build for production
+npm run start           # Start production server
+
+# Database
+npx prisma db push      # Push schema changes
+npx prisma generate     # Generate Prisma client
+npx prisma studio       # Open database GUI
+
+# Deployment
+vercel                  # Deploy to preview
+vercel --prod          # Deploy to production
 ```
 
-### Database Management
-```bash
-# View database in browser
-npx prisma studio
-
-# Reset database
-npx prisma db push --force-reset
-
-# Generate migration
-npx prisma migrate dev --name init
-```
-
-### MinIO Admin Console
-- Access: http://localhost:9001
-- Credentials: minioadmin / minioadmin
-- Manage buckets and view uploaded files
-
-## 🔧 Troubleshooting
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-**Build Fails on Vercel**
-- Ensure `PRISMA_GENERATE_DATAPROXY="true"` is set
-- Check all environment variables are configured
+**Authentication Error**: 
+- Check Google OAuth redirect URIs match your domain
+- Verify `NEXTAUTH_URL` matches your deployment URL
+- Ensure `NEXTAUTH_SECRET` is set and consistent
 
-**File Upload Errors**
-- Verify bucket exists and CORS is configured
-- Check storage credentials and endpoint URLs
+**File Upload CORS Error**:
+- Verify R2 bucket CORS policy includes your domain
+- Check all required environment variables are set
+- Confirm S3_PORT is set to 443 for HTTPS endpoints
 
-**Authentication Issues**
-- Verify Google OAuth redirect URIs
-- Ensure AUTH_SECRET is properly set
+**Database Connection Error**:
+- Verify DATABASE_URL is correct
+- Check if Prisma schema is pushed to database
+- Ensure database is accessible from your deployment
 
-**Database Connection**
-- Check DATABASE_URL format
-- Verify network access to database
+### Getting Help
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+- **Issues**: Open an issue on GitHub
+- **Discussions**: Use GitHub Discussions for questions
+- **Documentation**: Check individual tool documentation (Next.js, Prisma, etc.)
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - React framework
-- [Supabase](https://supabase.com/) - Database platform
-- [Cloudflare R2](https://developers.cloudflare.com/r2/) - Object storage
-- [NextAuth.js](https://next-auth.js.org/) - Authentication
-- [Prisma](https://prisma.io/) - Database ORM
-- [Tailwind CSS](https://tailwindcss.com/) - Styling framework
-
----
-
-**Built with ❤️ by [Krishnadev](https://github.com/Krishnadev-cmd)**
-   ```
-
-4. **Set up the database**
-   ```bash
-   # Generate Prisma client
-   npx prisma generate
-   
-   # Run database migrations
-   npx prisma migrate dev
-   ```
-
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-   Open [http://localhost:3000](http://localhost:3000) to view the application.
-
-## 📁 Project Structure
-
-```
-S-Files/
-├── app/                          # Next.js app directory
-│   ├── actions/                  # Server actions
-│   ├── api/                      # API routes
-│   │   ├── auth/                 # Authentication endpoints
-│   │   └── files/                # File management endpoints
-│   ├── components/               # React components
-│   │   ├── UploadFilesForm/      # Upload form components
-│   │   ├── FileContainer.tsx     # File display container
-│   │   ├── FileItem.tsx          # Individual file component
-│   │   └── LoadSpinner.tsx       # Loading component
-│   ├── content/                  # Page content components
-│   ├── login/                    # Login page
-│   ├── server/                   # Server-side utilities
-│   ├── utils/                    # Utility functions
-│   ├── globals.css               # Global styles
-│   ├── layout.tsx                # Root layout
-│   └── page.tsx                  # Home page
-├── contexts/                     # React contexts
-├── lib/                          # Utility libraries
-├── prisma/                       # Database schema and migrations
-├── public/                       # Static assets
-├── auth.ts                       # NextAuth configuration
-├── middleware.ts                 # Next.js middleware
-└── package.json                  # Dependencies and scripts
-```
-
-## 🔐 Authentication Setup
-
-1. **Google OAuth Setup**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing
-   - Enable Google+ API
-   - Create OAuth 2.0 credentials
-   - Add authorized redirect URIs: `http://localhost:3000/api/auth/callback/google`
-
-2. **Database Setup**
-   - Install PostgreSQL
-   - Create a new database
-   - Update the `DATABASE_URL` in your `.env.local`
-
-3. **MinIO Setup**
-   - Install and run MinIO server
-   - Create a bucket for file storage
-   - Update MinIO credentials in `.env.local`
-
-## 🚀 Upload Methods
-
-The application supports two upload methods:
-
-### S3 Presigned URLs
-- Direct upload to storage
-- Faster performance
-- Reduced server load
-
-### Next.js API Endpoints
-- Server-side processing
-- Additional validation
-- More control over upload process
-
-## 📊 Database Schema
-
-The application uses the following main models:
-
-- **User** - User account information
-- **Account** - OAuth account details
-- **Session** - User sessions
-- **File** - File metadata and storage information
-
-## 🔒 Security Features
-
-- **Encrypted Storage** - All files are securely stored with encryption
-- **Access Controls** - User-based file access permissions
-- **Secure Authentication** - Google OAuth with session management
-- **Input Validation** - Server-side validation for all inputs
-- **CSRF Protection** - Built-in CSRF protection with NextAuth.js
-
-## 📱 Responsive Design
-
-The application is fully responsive and works seamlessly across:
-- Desktop computers
-- Tablets
-- Mobile devices
-
-## 🚀 Deployment
-
-### Deploy on Vercel
-
-1. **Push to GitHub** (already done)
-
-2. **Deploy to Vercel**
-   - Connect your GitHub repository to Vercel
-   - Add environment variables in Vercel dashboard
-   - Deploy automatically
-
-3. **Update environment variables**
-   - Update `NEXTAUTH_URL` to your production domain
-   - Ensure all other environment variables are set
-
-### Deploy on Other Platforms
-
-The application can also be deployed on:
-- Railway
-- Render
-- Digital Ocean App Platform
-- Any Node.js hosting service
-
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## ⭐ Acknowledgments
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - The React framework
-- [NextAuth.js](https://next-auth.js.org/) - Authentication library
-- [Prisma](https://www.prisma.io/) - Database toolkit
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-- [MinIO](https://min.io/) - Object storage
-
-## 📞 Support
-
-If you have any questions or need help, please:
-- Open an issue on GitHub
-- Contact the maintainer
+- **Next.js** - The React framework for production
+- **Vercel** - Deployment and hosting platform
+- **Supabase** - Backend-as-a-Service for PostgreSQL
+- **Cloudflare** - R2 object storage and global CDN
+- **Prisma** - Next-generation ORM for TypeScript
+- **NextAuth.js** - Complete open-source authentication solution
 
 ---
 
-**Built with ❤️ by [Krishnadev](https://github.com/Krishnadev-cmd)**
+**Built with ❤️ by Krishnadev**
+
+*A modern file management system for the cloud-native world.*

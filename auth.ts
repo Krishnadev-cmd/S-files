@@ -1,20 +1,25 @@
 
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import {prisma as PrismaClient} from "@/app/server/db"
- 
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(PrismaClient),
-  providers: [Google],
+  providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+    })
+  ],
   session: {
-    strategy: "jwt" // Use JWT instead of database sessions for edge compatibility
+    strategy: "jwt" // Use JWT sessions only - no database required
   },
   callbacks: {
     async session({ session, token }) {
       return session;
     },
     async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+      }
       return token;
     },
   },
