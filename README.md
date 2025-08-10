@@ -1,10 +1,10 @@
 # S-Files - Modern File Management System
 
-A comprehensive, production-ready file management platform built with Next.js 15, designed specifically for **students to store files as a cluster and understand their content using AI**. Features Google authentication, cloud storage integration, and modern web technologies.
-
-## � Project Description
-
 **S-Files** is an innovative educational platform that **helps students store files, collaborate, and work as a team** in a modern cloud environment. The platform enables seamless file sharing and intelligent content analysis, making it perfect for academic projects, research collaboration, and group assignments.
+
+# S-Files - Video Demo
+
+https://github.com/user-attachments/assets/914acd64-d126-45eb-b0cc-401e3640db56
 
 **Built with cutting-edge technologies including Next.js, Supabase PostgreSQL, S3-compatible storage, Cloudflare R2 objects, Google Gemini AI, RAG (Retrieval-Augmented Generation), and comprehensive database management** - providing students with hands-on experience using industry-standard tools while fostering collaborative learning.
 
