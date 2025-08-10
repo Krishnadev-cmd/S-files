@@ -129,3 +129,5 @@ test-*.ts
 # Misc
 *.tgz
 *.tar.gz
+
+.vercel
