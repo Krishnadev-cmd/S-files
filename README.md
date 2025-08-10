@@ -4,7 +4,7 @@
 
 # S-Files - Video Demo
 
-https://github.com/user-attachments/assets/914acd64-d126-45eb-b0cc-401e3640db56
+[https://github.com/user-attachments/assets/914acd64-d126-45eb-b0cc-401e3640db56](https://github.com/user-attachments/assets/d1584d17-9ab1-4976-8b3b-64a897315df3)
 
 **Built with cutting-edge technologies including Next.js, Supabase PostgreSQL, S3-compatible storage, Cloudflare R2 objects, Google Gemini AI, RAG (Retrieval-Augmented Generation), and comprehensive database management** - providing students with hands-on experience using industry-standard tools while fostering collaborative learning.
 
