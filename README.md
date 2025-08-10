@@ -2,7 +2,13 @@
 
 A comprehensive, production-ready file management platform built with Next.js 15, designed specifically for **students to store files as a cluster and understand their content using AI**. Features Google authentication, cloud storage integration, and modern web technologies.
 
-## 🚀 Live Demo
+## � Project Description
+
+**S-Files** is an innovative educational platform that **helps students store files, collaborate, and work as a team** in a modern cloud environment. The platform enables seamless file sharing and intelligent content analysis, making it perfect for academic projects, research collaboration, and group assignments.
+
+**Built with cutting-edge technologies including Next.js, Supabase PostgreSQL, S3-compatible storage, Cloudflare R2 objects, Google Gemini AI, RAG (Retrieval-Augmented Generation), and comprehensive database management** - providing students with hands-on experience using industry-standard tools while fostering collaborative learning.
+
+## �🚀 Live Demo
 
 **🌐 Production URL**: [https://s-files.vercel.app](https://s-files.vercel.app)
 
@@ -42,16 +48,17 @@ A comprehensive, production-ready file management platform built with Next.js 15
 - **Google OAuth** - Secure Google Sign-In integration
 
 ### **Database & Storage**
-- **PostgreSQL** - Robust relational database via Supabase
-- **Prisma ORM** - Type-safe database client with Accelerate
+- **Supabase PostgreSQL** - Robust relational database with real-time capabilities
+- **Prisma ORM** - Type-safe database client with Accelerate for advanced database management
 - **MinIO** - S3-compatible local development storage for hands-on learning
 - **Cloudflare R2 Object Storage** - Production-grade S3-compatible cloud storage with global CDN
 - **AWS S3 SDK** - Universal interface for S3-compatible storage systems
 
 ### **AI & Intelligence**
-- **AI Integration** - Smart file content analysis and understanding
+- **Google Gemini AI** - Advanced AI model for content analysis and understanding
+- **RAG (Retrieval-Augmented Generation)** - Intelligent document search and content generation
 - **Content Recognition** - Automated file categorization and insights
-- **Educational Analytics** - Learning-focused file organization
+- **Educational Analytics** - Learning-focused file organization and collaboration metrics
 
 ### **Deployment & DevOps**
 - **Vercel** - Serverless deployment with automatic builds
