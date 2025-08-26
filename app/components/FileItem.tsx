@@ -105,27 +105,27 @@ export function FileItem({
   };
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 group">
+  <div className="relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 group dark:bg-neutral-900 dark:border-neutral-700">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1 min-w-0">
           {/* File Icon */}
-          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center dark:from-blue-950 dark:to-indigo-950">
+            <svg className="w-5 h-5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
           
           {/* File Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-gray-900 truncate" title={file.originalFileName}>
+            <h3 className="text-sm font-medium text-gray-900 truncate dark:text-gray-100" title={file.originalFileName}>
               {file.originalFileName}
             </h3>
             <div className="flex items-center space-x-2 mt-1">
-              <span className="text-xs text-gray-500 font-medium">
+              <span className="text-xs text-gray-500 font-medium dark:text-gray-400">
                 {formatBytes(file.fileSize)}
               </span>
-              <span className="text-xs text-gray-400">•</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-400 dark:text-gray-500">•</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : 'Recently uploaded'}
               </span>
             </div>
@@ -133,10 +133,10 @@ export function FileItem({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center space-x-2 ml-4">
+  <div className="flex items-center space-x-2 ml-4">
           {/* Download Button */}
           <button
-            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200"
+            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 dark:text-blue-300 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900 dark:hover:border-blue-700"
             onClick={() => downloadFile(file)}
             title="Download file"
           >
@@ -146,7 +146,7 @@ export function FileItem({
             Download
           </button>
           <button
-            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200"
+            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 dark:text-blue-300 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900 dark:hover:border-blue-700"
             onClick={handleGenerateClick}
             title="Ask question about this file"
           >
@@ -157,7 +157,7 @@ export function FileItem({
           </button>
           {/* Delete Button */}
           <button
-            className="inline-flex items-center px-3 py-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-3 py-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed dark:text-red-300 dark:bg-red-950 dark:border-red-800 dark:hover:bg-red-900 dark:hover:border-red-700"
             onClick={() => deleteFile(file.id)}
             disabled={file.isDeleting}
           >
@@ -183,8 +183,8 @@ export function FileItem({
 
       {/* Question Text Area */}
       {showQuestionArea && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t border-gray-200">
-          <label htmlFor={`question-${file.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <label htmlFor={`question-${file.id}`} className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
             Ask a question about this file:
           </label>
           <textarea
@@ -192,12 +192,12 @@ export function FileItem({
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Enter your question about the PDF or file content..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
             rows={3}
           />
           <div className="flex justify-end space-x-2 mt-3">
             <button
-              className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+              className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:text-gray-300 dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-700"
               onClick={() => {
                 setShowQuestionArea(false);
                 setQuestion("");
@@ -207,7 +207,7 @@ export function FileItem({
               Cancel
             </button>
             <button
-              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-blue-500"
               disabled={!question.trim() || isGenerating}
               onClick={handleSubmitQuestion}
             >
@@ -229,18 +229,18 @@ export function FileItem({
 
       {/* Response Section */}
       {response && (
-        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200 dark:bg-green-950 dark:border-green-800">
           <div className="flex items-center mb-2">
-            <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-green-600 mr-2 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h4 className="text-sm font-medium text-green-800">AI Response:</h4>
+            <h4 className="text-sm font-medium text-green-800 dark:text-green-300">AI Response:</h4>
           </div>
-          <div className="bg-white p-3 rounded-md border border-green-300">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{response}</p>
+          <div className="bg-white p-3 rounded-md border border-green-300 dark:bg-gray-900 dark:border-green-700">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap dark:text-gray-300">{response}</p>
           </div>
           <button
-            className="mt-2 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
+            className="mt-2 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 dark:text-green-300 dark:bg-green-900 dark:border-green-700 dark:hover:bg-green-800"
             onClick={() => setResponse("")}
           >
             Clear Response
@@ -250,8 +250,8 @@ export function FileItem({
 
       {/* Loading Overlay */}
       {file.isDeleting && (
-        <div className="absolute inset-0 bg-white bg-opacity-80 rounded-lg flex items-center justify-center">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+        <div className="absolute inset-0 bg-white bg-opacity-80 rounded-lg flex items-center justify-center dark:bg-black dark:bg-opacity-80">
+          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
             <LoadSpinner size="small" />
             <span>Deleting file...</span>
           </div>

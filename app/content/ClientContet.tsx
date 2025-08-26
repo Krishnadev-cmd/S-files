@@ -29,17 +29,17 @@ export default function ClientContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 dark:bg-black">
         <div className="space-y-8">
           {/* Upload Section */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6 border-b border-gray-100">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden dark:bg-neutral-900">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-6  dark:bg-gradient-to-r dark:from-black dark:to-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Direct S3 Upload</h2>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Direct S3 Upload</h2>
+                  <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">
                     Upload files directly to S3 storage for optimal performance
                   </p>
                 </div>
@@ -50,18 +50,18 @@ export default function ClientContent() {
               </div>
             </div>
             
-            <div className="p-8">
+            <div className="p-8 bg-white dark:bg-black">
               <UploadFilesS3PresignedUrl onUploadSuccess={fetchFiles} />
             </div>
           </div>
 
           {/* Files Section */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-100">
-              <div className="flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden  dark:bg-black">
+            <div className="bg-white px-8 py-6  dark:bg-black">
+              <div className="flex items-center justify-between dark:bg-black">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Your Files</h2>
-                  <p className="text-sm text-gray-600 mt-1">Manage and download your uploaded files</p>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Your Files</h2>
+                  <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">Manage and download your uploaded files</p>
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@ export default function ClientContent() {
       </div>
 
       {/* Footer */}
-      <div className="bg-white border-t border-gray-200 mt-16">
+      <div className="bg-white mt-16 dark:bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-center text-sm text-gray-500">
             <svg className="h-4 w-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
