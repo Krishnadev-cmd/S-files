@@ -1,4 +1,4 @@
-import { handleSignIn } from '@/app/actions/auth';
+import { handleSignInGithub, handleSignInGoogle } from '@/app/actions/auth';
 import { User } from '@/app/components/icons';
 
 export default function LoginPage() {
@@ -31,7 +31,7 @@ export default function LoginPage() {
 
           {/* Sign in form */}
           <div className="mt-8">
-            <form action={handleSignIn} className="space-y-6">
+            <form action={handleSignInGoogle} className="space-y-6">
               <button 
                 type="submit"
                 className="group relative w-full flex justify-center py-4 px-6 border border-transparent rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition-all duration-200 hover:scale-105 hover:shadow-lg"
