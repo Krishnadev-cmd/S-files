@@ -7,6 +7,7 @@ import {
 } from "@/app/utils/fileUploadHelpers";
 import { UploadFilesFormUI } from "./UploadFilesFormUI";
 import { type ShortFileProp } from "@/app/utils/types";
+import { useBucket } from "@/contexts/bucket-context";
 
 type UploadFilesFormProps = {
   onUploadSuccess: () => void;
@@ -17,6 +18,7 @@ export function UploadFilesS3PresignedUrl({
 }: UploadFilesFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { currentBucket } = useBucket();
 
   const uploadToServer = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,14 +45,14 @@ export function UploadFilesS3PresignedUrl({
     }
     setIsLoading(true);
 
-    const presignedUrls = await getPresignedUrls(filesInfo);
+    const presignedUrls = await getPresignedUrls(filesInfo, currentBucket!);
     if (!presignedUrls?.length) {
       alert("Something went wrong, please try again later");
       return;
     }
 
     // upload files to s3 endpoint directly and save file info to db
-    await handleUpload(files, presignedUrls, onUploadSuccess);
+    await handleUpload(files, presignedUrls, onUploadSuccess, currentBucket!);
 
     setIsLoading(false);
   };

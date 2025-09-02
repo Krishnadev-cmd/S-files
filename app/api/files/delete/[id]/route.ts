@@ -1,13 +1,5 @@
 import { deleteFileFromBucket } from "@/app/utils/s3-file-management";
 import { db } from "@/app/server/db";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const env = process.env;
-if (!env.S3_BUCKET_NAME) {
-  throw new Error("S3_BUCKET_NAME is not defined in environment variables");
-}
 
 export async function DELETE(
   request: Request,
@@ -22,10 +14,10 @@ export async function DELETE(
       return Response.json({ message: "Missing or invalid id" }, { status: 400 });
     }
 
-    // Get the file name in bucket from the database
+    // Get the file name and bucket from the database
     const fileObject = await db.file.findUnique({
       where: { id },
-      select: { fileName: true },
+      select: { fileName: true, bucket: true },
     });
 
     if (!fileObject) {
@@ -33,14 +25,14 @@ export async function DELETE(
       return Response.json({ message: "File not found" }, { status: 404 });
     }
 
-    console.log("📁 Found file to delete:", fileObject.fileName);
+    console.log("📁 Found file to delete:", fileObject.fileName, "in bucket:", fileObject.bucket);
 
-    // Delete the file from MinIO S3 bucket
+    // Delete the file from the appropriate bucket
     await deleteFileFromBucket({
-      bucketName: env.S3_BUCKET_NAME,
+      bucketName: fileObject.bucket,
       fileName: fileObject.fileName,
     });
-    console.log("✅ File deleted from MinIO S3");
+    console.log("✅ File deleted from storage");
 
     // Delete the file record from the database
     const deletedItem = await db.file.delete({

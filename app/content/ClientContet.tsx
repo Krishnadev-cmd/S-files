@@ -4,16 +4,21 @@
 import { useState, useEffect } from "react";
 import { UploadFilesS3PresignedUrl } from "@/app/components/UploadFilesForm/UploadFilesS3PresignedUrl";
 import { FilesContainer } from "@/app/components/FileContainer";
+import BucketAuth from "@/app/components/BucketAuth";
+import { useBucket } from "@/contexts/bucket-context";
 import { type FileProps } from "@/app/utils/types";
 
 // This component contains all the client-side logic
 export default function ClientContent() {
-  // All state and effects live here
+  // All state and effects live here - MUST be called before any conditional returns
   const [files, setFiles] = useState<FileProps[]>([]);
+  const { currentBucket, isAuthenticated } = useBucket();
 
   const fetchFiles = async () => {
+    if (!currentBucket) return;
+    
     try {
-      const response = await fetch("/api/files");
+      const response = await fetch(`/api/files?bucket=${currentBucket}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -25,8 +30,15 @@ export default function ClientContent() {
   };
 
   useEffect(() => {
-    fetchFiles().catch(console.error);
-  }, []);
+    if (isAuthenticated && currentBucket) {
+      fetchFiles().catch(console.error);
+    }
+  }, [isAuthenticated, currentBucket]);
+
+  // Conditional render AFTER all hooks
+  if (!isAuthenticated || !currentBucket) {
+    return <BucketAuth />;
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -40,7 +52,7 @@ export default function ClientContent() {
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Direct S3 Upload</h2>
                   <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">
-                    Upload files directly to S3 storage for optimal performance
+                    Upload files directly to bucket: <span className="font-medium text-blue-600">{currentBucket}</span>
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -61,7 +73,7 @@ export default function ClientContent() {
               <div className="flex items-center justify-between dark:bg-black">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Your Files</h2>
-                  <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">Manage and download your uploaded files</p>
+                  <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">Manage and download files from bucket: <span className="font-medium text-blue-600">{currentBucket}</span></p>
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

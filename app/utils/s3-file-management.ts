@@ -1,5 +1,5 @@
 import * as Minio from "minio";
-import { S3Client, HeadBucketCommand, CreateBucketCommand, HeadObjectCommand, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, HeadBucketCommand, CreateBucketCommand, HeadObjectCommand, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, PutBucketCorsCommand, ListBucketsCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type internal from "stream";
 
@@ -40,6 +40,46 @@ if (useR2) {
 // Export the configured client
 export { s3Client };
 
+// Function to set up CORS for R2 bucket
+export async function setupR2BucketCors(bucketName: string) {
+  if (!useR2) {
+    console.log("📝 Skipping CORS setup for MinIO (not needed)");
+    return;
+  }
+
+  try {
+    console.log(`🔧 Setting up CORS for R2 bucket: ${bucketName}`);
+    
+    const corsConfiguration = {
+      CORSRules: [
+        {
+          AllowedHeaders: ["*"],
+          AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
+          AllowedOrigins: [
+            "http://localhost:3000",
+            "https://localhost:3000",
+            ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+            ...(process.env.NODE_ENV === 'development' ? ["*"] : []),
+          ],
+          ExposeHeaders: ["ETag", "x-amz-version-id"],
+          MaxAgeSeconds: 3000,
+        },
+      ],
+    };
+
+    await r2Client!.send(new PutBucketCorsCommand({
+      Bucket: bucketName,
+      CORSConfiguration: corsConfiguration,
+    }));
+    
+    console.log(`✅ CORS policy configured for R2 bucket: ${bucketName}`);
+  } catch (error) {
+    console.error(`❌ Failed to set CORS for bucket ${bucketName}:`, error);
+    // Don't throw here - CORS failure shouldn't prevent bucket creation
+    console.warn(`⚠️ Bucket created but CORS setup failed. You may need to configure CORS manually.`);
+  }
+}
+
 export async function checkMinioConnection(): Promise<boolean> {
   try {
     if (useR2) {
@@ -56,28 +96,109 @@ export async function checkMinioConnection(): Promise<boolean> {
   }
 }
 
-export async function createBucketIfNotExists(bucketName: string) {
+export async function createBucketIfNotExists(bucketName: string): Promise<{ success: boolean; message: string; corsConfigured?: boolean; error?: string }> {
   try {
     if (useR2) {
-      // For R2, try to check if bucket exists
-      await r2Client!.send(new HeadBucketCommand({ Bucket: bucketName }));
+      console.log(`🌐 Creating/checking R2 bucket: ${bucketName}`);
+      
+      // Validate bucket name format for R2
+      if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(bucketName) || bucketName.length < 3 || bucketName.length > 63) {
+        return {
+          success: false,
+          message: "Invalid bucket name format",
+          error: "Invalid bucket name format for R2. Must be 3-63 characters, lowercase letters, numbers, and hyphens only."
+        };
+      }
+
+      let corsConfigured = false;
+
+      try {
+        // First try to check if bucket exists
+        await r2Client!.send(new HeadBucketCommand({ Bucket: bucketName }));
+        console.log(`✅ R2 bucket ${bucketName} already exists`);
+        return {
+          success: true,
+          message: `R2 bucket ${bucketName} already exists`,
+          corsConfigured: false // We don't know if CORS is configured for existing buckets
+        };
+      } catch (headError: any) {
+        if (headError.name === 'NotFound' || headError.name === 'NoSuchBucket') {
+          // Bucket doesn't exist, try to create it
+          console.log(`📦 Creating R2 bucket: ${bucketName}`);
+          try {
+            await r2Client!.send(new CreateBucketCommand({ 
+              Bucket: bucketName 
+            }));
+            console.log(`✅ Created R2 bucket: ${bucketName}`);
+
+            // Set up CORS configuration immediately after creating bucket
+            try {
+              await setupR2BucketCors(bucketName);
+              corsConfigured = true;
+            } catch (corsError) {
+              console.warn(`⚠️ CORS setup failed for ${bucketName}:`, corsError);
+            }
+            
+            return {
+              success: true,
+              message: `Successfully created R2 bucket ${bucketName}`,
+              corsConfigured
+            };
+            
+          } catch (createError: any) {
+            if (createError.name === 'BucketAlreadyExists') {
+              console.log(`✅ R2 bucket ${bucketName} was created by another process`);
+              return {
+                success: true,
+                message: `R2 bucket ${bucketName} created by another process`,
+                corsConfigured: false
+              };
+            } else {
+              console.error(`❌ Failed to create R2 bucket:`, createError);
+              return {
+                success: false,
+                message: "Failed to create R2 bucket",
+                error: `Failed to create R2 bucket "${bucketName}": ${createError.message}`
+              };
+            }
+          }
+        } else {
+          // Some other error occurred while checking bucket
+          console.error(`❌ Error checking R2 bucket:`, headError);
+          return {
+            success: false,
+            message: "Error checking R2 bucket",
+            error: `Error accessing R2 bucket "${bucketName}": ${headError.message}`
+          };
+        }
+      }
     } else {
       // For MinIO, create bucket if it doesn't exist
       const bucketExists = await s3Client.bucketExists(bucketName);
       if (!bucketExists) {
         await s3Client.makeBucket(bucketName);
-        console.log(`✅ Created bucket: ${bucketName}`);
+        console.log(`✅ Created MinIO bucket: ${bucketName}`);
+        return {
+          success: true,
+          message: `Successfully created MinIO bucket ${bucketName}`,
+          corsConfigured: false
+        };
+      } else {
+        console.log(`✅ MinIO bucket ${bucketName} already exists`);
+        return {
+          success: true,
+          message: `MinIO bucket ${bucketName} already exists`,
+          corsConfigured: false
+        };
       }
     }
   } catch (error: any) {
-    if (useR2 && error.name === 'NotFound') {
-      // Bucket doesn't exist in R2, but we can't create it programmatically
-      console.warn(`⚠️ Bucket ${bucketName} doesn't exist in R2. Please create it manually in Cloudflare dashboard.`);
-      throw new Error(`Bucket ${bucketName} doesn't exist. Please create it in your Cloudflare R2 dashboard.`);
-    } else if (!useR2) {
-      console.error("❌ Error checking/creating bucket:", error);
-      throw error;
-    }
+    console.error("❌ Error with bucket:", error);
+    return {
+      success: false,
+      message: "Error with bucket creation",
+      error: error.message || "Unknown error"
+    };
   }
 }
 
@@ -193,17 +314,30 @@ export async function createPresignedUrlToUpload({
   fileName: string;
   expiry?: number;
 }) {
-  // Create bucket if it doesn't exist
-  await createBucketIfNotExists(bucketName);
+  try {
+    console.log(`🔧 Creating presigned upload URL for bucket: ${bucketName}, file: ${fileName}`);
+    
+    // Create bucket if it doesn't exist
+    await createBucketIfNotExists(bucketName);
 
-  if (useR2) {
-    const command = new PutObjectCommand({
-      Bucket: bucketName,
-      Key: fileName,
-    });
-    return await getSignedUrl(r2Client!, command, { expiresIn: expiry });
-  } else {
-    return await s3Client.presignedPutObject(bucketName, fileName, expiry);
+    if (useR2) {
+      console.log(`🌐 Using R2 with endpoint: ${process.env.S3_ENDPOINT}`);
+      const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: fileName,
+      });
+      const url = await getSignedUrl(r2Client!, command, { expiresIn: expiry });
+      console.log(`✅ R2 presigned URL created successfully`);
+      return url;
+    } else {
+      console.log(`🏠 Using MinIO for local development`);
+      const url = await s3Client.presignedPutObject(bucketName, fileName, expiry);
+      console.log(`✅ MinIO presigned URL created successfully`);
+      return url;
+    }
+  } catch (error) {
+    console.error(`❌ Failed to create presigned upload URL:`, error);
+    throw error;
   }
 }
 

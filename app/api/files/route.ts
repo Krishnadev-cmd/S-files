@@ -4,10 +4,23 @@ import { db } from "@/app/server/db";
 
 const LIMIT_FILES = 10;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Get 10 latest files from the database
+    const { searchParams } = new URL(request.url);
+    const bucket = searchParams.get('bucket');
+
+    if (!bucket) {
+      return NextResponse.json(
+        { error: "Bucket name is required" },
+        { status: 400 }
+      );
+    }
+
+    // Get 10 latest files from the specified bucket
     const files = await db.file.findMany({
+      where: {
+        bucket: bucket,
+      },
       take: LIMIT_FILES,
       orderBy: {
         createdAt: "desc",

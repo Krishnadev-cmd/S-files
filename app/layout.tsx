@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import AuthProvider from "@/contexts/session-provider";
+import { BucketProvider } from "@/contexts/bucket-context";
 import Navbar from "@/app/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -22,8 +23,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${inter.variable}`}>
         <AuthProvider>
-          <Navbar />
-          {children}
+          <BucketProvider>
+            <Navbar />
+            {children}
+          </BucketProvider>
         </AuthProvider>
       </body>
     </html>

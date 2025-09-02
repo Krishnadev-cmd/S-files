@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { handleSignOut } from "../actions/auth";
+import BucketInfo from "./BucketInfo";
 
 export default async function Navbar() {
   const session = await auth();
@@ -10,7 +11,7 @@ export default async function Navbar() {
   if (!user) return null;
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95 dark:bg-neutral-900 dark:border-neutral-800 dark:shadow-none">
+    <nav className="bg-white/95 shadow-sm border-b border-gray-200 sticky top-0 z-50 backdrop-blur-sm dark:bg-neutral-900 dark:border-neutral-800 dark:shadow-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
@@ -27,6 +28,9 @@ export default async function Navbar() {
 
           {/* User Profile Section */}
           <div className="flex items-center space-x-4">
+            {/* Bucket Info */}
+            <BucketInfo />
+            
             {/* Profile Info */}
             <div className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
               {user.image ? (

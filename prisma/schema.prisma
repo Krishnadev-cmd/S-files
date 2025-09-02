@@ -17,6 +17,15 @@ model File {
     size         Int
 }
 
+model Bucket {
+    id          String   @id @default(uuid())
+    name        String   @unique
+    password    String   // Hashed password
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    createdBy   String?  // Optional: track who created the bucket
+}
+
 model User {
   id            String          @id @default(cuid())
   name          String?

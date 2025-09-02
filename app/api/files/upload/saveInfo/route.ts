@@ -1,20 +1,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const env = process.env;
-if (!env.S3_BUCKET_NAME) {
-  throw new Error("S3_BUCKET_NAME is not defined in environment variables");
-}
 import { db } from "@/app/server/db";
 import type { PresignedUrlProp, FileInDBProp } from "@/app/utils/types";
 
 export async function POST(request: NextRequest) {
   try {
-    const presignedUrls = await request.json() as PresignedUrlProp[];
+    const { presignedUrls, bucketName } = await request.json() as { presignedUrls: PresignedUrlProp[], bucketName: string };
     console.log("Received presigned URLs for database save:", presignedUrls);
+    console.log("Target bucket:", bucketName);
 
     if (!presignedUrls?.length) {
       return NextResponse.json(
@@ -23,10 +16,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!bucketName) {
+      return NextResponse.json(
+        { message: "Bucket name is required" },
+        { status: 400 }
+      );
+    }
+
     // Save files info to database
     const saveFilesInfo = await db.file.createMany({
       data: presignedUrls.map((file: PresignedUrlProp) => ({
-        bucket: env.S3_BUCKET_NAME!,
+        bucket: bucketName,
         fileName: file.fileNameInBucket,
         originalName: file.originalFileName,
         size: file.fileSize,

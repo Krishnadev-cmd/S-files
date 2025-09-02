@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       select: {
         fileName: true,
         originalName: true,
+        bucket: true,
       },
     });
 
@@ -45,11 +46,11 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "File not found" }, { status: 404 });
     }
 
-    console.log("📄 Found file:", fileObject.originalName);
+    console.log("📄 Found file:", fileObject.originalName, "in bucket:", fileObject.bucket);
 
-    // Get file data from MinIO S3
+    // Get file data from S3 using the file's bucket
     const fileStream = await getFileFromBucket({
-      bucketName: process.env.S3_BUCKET_NAME!,
+      bucketName: fileObject.bucket,
       fileName: fileObject.fileName,
     });
 

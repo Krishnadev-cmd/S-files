@@ -28,15 +28,16 @@ export function validateFiles(
 /**
  * Gets presigned urls for uploading files to S3
  * @param formData form data with files to upload
+ * @param bucketName the bucket to upload to
  * @returns
  */
-export const getPresignedUrls = async (files: ShortFileProp[]) => {
+export const getPresignedUrls = async (files: ShortFileProp[], bucketName: string) => {
   const response = await fetch("/api/files/upload/presignedUrl", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(files),
+    body: JSON.stringify({ files, bucketName }),
   });
   return (await response.json()) as PresignedUrlProp[];
 };
@@ -59,8 +60,9 @@ export const uploadToS3 = async (
       method: "PUT",
       body: file,
       headers: {
-        "Content-Type": file.type,
+        "Content-Type": file.type || "application/octet-stream",
       },
+      mode: 'cors', // Explicitly set CORS mode
     });
     
     console.log(`📤 Upload response status: ${response.status}`);
@@ -75,6 +77,12 @@ export const uploadToS3 = async (
     return response;
   } catch (error) {
     console.error(`❌ Upload error:`, error);
+    
+    // Check if it's a CORS error
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('Upload failed due to CORS policy. Please check your R2 bucket CORS configuration.');
+    }
+    
     throw error;
   }
 };
@@ -82,15 +90,16 @@ export const uploadToS3 = async (
 /**
  * Saves file info in DB
  * @param presignedUrls presigned urls for uploading
+ * @param bucketName the bucket name
  * @returns
  */
-export const saveFileInfoInDB = async (presignedUrls: PresignedUrlProp[]) => {
+export const saveFileInfoInDB = async (presignedUrls: PresignedUrlProp[], bucketName: string) => {
   return await fetch("/api/files/upload/saveInfo", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(presignedUrls),
+    body: JSON.stringify({ presignedUrls, bucketName }),
   });
 };
 
@@ -99,12 +108,14 @@ export const saveFileInfoInDB = async (presignedUrls: PresignedUrlProp[]) => {
  * @param files files to upload
  * @param presignedUrls  presigned urls for uploading
  * @param onUploadSuccess callback to execute after successful upload
+ * @param bucketName the bucket name
  * @returns
  */
 export const handleUpload = async (
   files: File[],
   presignedUrls: PresignedUrlProp[],
   onUploadSuccess: () => void,
+  bucketName: string,
 ) => {
   try {
     const uploadToS3Response = await Promise.all(
@@ -127,7 +138,7 @@ export const handleUpload = async (
     }
 
     // Save file info to database
-    const saveResponse = await saveFileInfoInDB(presignedUrls);
+    const saveResponse = await saveFileInfoInDB(presignedUrls, bucketName);
     
     if (!saveResponse.ok) {
       const errorText = await saveResponse.text();
@@ -140,7 +151,21 @@ export const handleUpload = async (
     onUploadSuccess();
   } catch (error) {
     console.error("Upload error:", error);
-    alert("Upload failed: " + (error as Error).message);
+    
+    let errorMessage = "Upload failed: ";
+    if (error instanceof Error) {
+      if (error.message.includes("CORS")) {
+        errorMessage += "CORS policy issue. Please check your R2 bucket CORS configuration. See R2_CORS_SETUP.md for help.";
+      } else if (error.message === "Failed to fetch") {
+        errorMessage += "Network error. This might be due to CORS policy or network connectivity. Check your R2 bucket CORS settings.";
+      } else {
+        errorMessage += error.message;
+      }
+    } else {
+      errorMessage += "Unknown error occurred";
+    }
+    
+    alert(errorMessage);
   }
 };
 

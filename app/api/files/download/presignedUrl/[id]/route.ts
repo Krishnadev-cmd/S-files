@@ -1,10 +1,5 @@
 import { createPresignedUrlToDownload } from "@/app/utils/s3-file-management";
 import { db } from "@/app/server/db";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const env = process.env;
 
 /**
  * This route is used to get presigned url for downloading file from S3
@@ -22,10 +17,10 @@ export async function GET(
       return Response.json({ message: "Missing or invalid id" }, { status: 400 });
     }
 
-    // Get the file name in bucket from the database
+    // Get the file name and bucket from the database
     const fileObject = await db.file.findUnique({
       where: { id },
-      select: { fileName: true },
+      select: { fileName: true, bucket: true },
     });
 
     if (!fileObject) {
@@ -33,11 +28,11 @@ export async function GET(
       return Response.json({ message: "File not found" }, { status: 404 });
     }
 
-    console.log("📁 Found file to download:", fileObject.fileName);
+    console.log("📁 Found file to download:", fileObject.fileName, "in bucket:", fileObject.bucket);
 
     // Get presigned url from s3 storage
     const presignedUrl = await createPresignedUrlToDownload({
-      bucketName: env.S3_BUCKET_NAME!,
+      bucketName: fileObject.bucket,
       fileName: fileObject.fileName,
     });
 
