@@ -111,14 +111,7 @@ export async function createR2BucketWithCors(bucketName: string): Promise<Bucket
               "x-amz-security-token"
             ],
             AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
-            AllowedOrigins: process.env.NODE_ENV === 'development' 
-              ? ["*"] // Allow all origins in development
-              : [
-                  "http://localhost:3000",
-                  "https://localhost:3000",
-                  ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
-                  ...(process.env.NEXT_PUBLIC_SITE_URL ? [process.env.NEXT_PUBLIC_SITE_URL] : []),
-                ],
+            AllowedOrigins: ["*"],
             ExposeHeaders: [
               "ETag", 
               "x-amz-version-id", 

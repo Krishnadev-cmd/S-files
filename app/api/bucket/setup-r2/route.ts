@@ -60,12 +60,7 @@ export async function POST(request: NextRequest) {
         {
           AllowedHeaders: ["*"],
           AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
-          AllowedOrigins: [
-            "http://localhost:3000",
-            "https://localhost:3000",
-            ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
-            ...(process.env.NODE_ENV === 'development' ? ["*"] : []), // Allow all origins in development
-          ],
+          AllowedOrigins: ["*"],
           ExposeHeaders: ["ETag", "x-amz-version-id"],
           MaxAgeSeconds: 3000,
         },
