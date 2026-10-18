@@ -1,4 +1,16 @@
+/**
+ * ⚠️ LEGACY / DEPRECATED — DO NOT USE
+ *
+ * This AuthContext was designed for a standalone FastAPI backend at localhost:8000.
+ * That backend no longer exists in this project.
+ *
+ * Authentication is now handled by next-auth v5 (see /auth.ts and /app/auth/ routes).
+ * Use the `useSession()` hook from "next-auth/react" instead of `useAuth()` from here.
+ *
+ * This file is kept for historical reference and may be removed in a future cleanup.
+ */
 'use client';
+
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import Cookies from 'js-cookie';

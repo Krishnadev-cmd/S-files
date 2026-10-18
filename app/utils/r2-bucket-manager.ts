@@ -1,15 +1,25 @@
 import { S3Client, CreateBucketCommand, HeadBucketCommand, PutBucketCorsCommand, ListBucketsCommand } from "@aws-sdk/client-s3";
 
-// R2 client specifically for bucket management
-const r2ManagementClient = new S3Client({
-  region: process.env.AWS_REGION || "auto",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-  endpoint: process.env.S3_ENDPOINT,
-  forcePathStyle: false,
-});
+// R2 client specifically for bucket management — lazy-initialized to avoid crashes in local dev
+let _r2ManagementClient: S3Client | null = null;
+
+function getR2ManagementClient(): S3Client {
+  if (!_r2ManagementClient) {
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      throw new Error("R2 credentials are not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.");
+    }
+    _r2ManagementClient = new S3Client({
+      region: process.env.AWS_REGION || "auto",
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+      endpoint: process.env.S3_ENDPOINT,
+      forcePathStyle: false,
+    });
+  }
+  return _r2ManagementClient;
+}
 
 export interface BucketCreationResult {
   success: boolean;
@@ -39,7 +49,7 @@ export async function createR2BucketWithCors(bucketName: string): Promise<Bucket
     // Step 1: Check if bucket already exists
     let bucketExists = false;
     try {
-      await r2ManagementClient.send(new HeadBucketCommand({ Bucket: bucketName }));
+      await getR2ManagementClient().send(new HeadBucketCommand({ Bucket: bucketName }));
       bucketExists = true;
       console.log(`✅ R2 bucket ${bucketName} already exists`);
       result.message = `Bucket ${bucketName} already exists`;
@@ -60,7 +70,7 @@ export async function createR2BucketWithCors(bucketName: string): Promise<Bucket
     if (!bucketExists) {
       try {
         console.log(`🔨 Creating R2 bucket: ${bucketName}`);
-        const createResult = await r2ManagementClient.send(new CreateBucketCommand({ 
+        const createResult = await getR2ManagementClient().send(new CreateBucketCommand({ 
           Bucket: bucketName 
         }));
         console.log(`✅ Created R2 bucket: ${bucketName}`, createResult);
@@ -120,7 +130,7 @@ export async function createR2BucketWithCors(bucketName: string): Promise<Bucket
         ],
       };
 
-      await r2ManagementClient.send(new PutBucketCorsCommand({
+      await getR2ManagementClient().send(new PutBucketCorsCommand({
         Bucket: bucketName,
         CORSConfiguration: corsConfiguration,
       }));
@@ -182,7 +192,7 @@ export function isValidR2BucketName(bucketName: string): boolean {
 
 export async function listR2Buckets(): Promise<string[]> {
   try {
-    const response = await r2ManagementClient.send(new ListBucketsCommand({}));
+    const response = await getR2ManagementClient().send(new ListBucketsCommand({}));
     return response.Buckets?.map(bucket => bucket.Name || '') || [];
   } catch (error) {
     console.error("❌ Error listing R2 buckets:", error);
@@ -192,7 +202,7 @@ export async function listR2Buckets(): Promise<string[]> {
 
 export async function verifyR2BucketAccess(bucketName: string): Promise<{ accessible: boolean; error?: string }> {
   try {
-    await r2ManagementClient.send(new HeadBucketCommand({ Bucket: bucketName }));
+    await getR2ManagementClient().send(new HeadBucketCommand({ Bucket: bucketName }));
     return { accessible: true };
   } catch (error: any) {
     console.error(`❌ Cannot access R2 bucket ${bucketName}:`, error);

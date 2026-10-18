@@ -1,19 +1,16 @@
 import { saveFileInBucket } from "@/app/utils/s3-file-management";
 import { nanoid } from "nanoid";
 import { db } from "@/app/server/db";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const env = process.env;
-if (!env.S3_BUCKET_NAME) {
-  throw new Error("S3_BUCKET_NAME is not defined in environment variables");
-}
-
-const bucketName = env.S3_BUCKET_NAME;
-
 export async function POST(request: Request) {
   console.log("📤 Uploading files via smallFiles API route...");
+
+  const bucketName = process.env.S3_BUCKET_NAME;
+  if (!bucketName) {
+    return Response.json({
+      status: "fail",
+      message: "S3_BUCKET_NAME is not defined in environment variables"
+    }, { status: 500 });
+  }
   
   try {
     const formData = await request.formData();

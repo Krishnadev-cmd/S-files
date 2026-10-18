@@ -2,21 +2,13 @@ import { NextRequest } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { getFileFromBucket } from "@/app/utils/s3-file-management";
 import { db } from "@/app/server/db";
-import dotenv from "dotenv";
-import * as fs from 'fs';
 
-
-dotenv.config();
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on('data', chunk => chunks.push(chunk));
-    stream.on('end', () => resolve(Buffer.concat(chunks)));
-    stream.on('error', reject);
-  });
+function getGeminiClient(): GoogleGenAI {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not defined in environment variables");
+  }
+  return new GoogleGenAI({ apiKey });
 }
 
 export async function POST(request: NextRequest) {
@@ -48,19 +40,34 @@ export async function POST(request: NextRequest) {
 
     console.log("📄 Found file:", fileObject.originalName, "in bucket:", fileObject.bucket);
 
-    // Get file data from S3 using the file's bucket
-    const fileStream = await getFileFromBucket({
+    // Get file data from S3/R2 using the file's bucket
+    const fileBody = await getFileFromBucket({
       bucketName: fileObject.bucket,
       fileName: fileObject.fileName,
     });
 
-    if (!fileStream) {
+    if (!fileBody) {
       return Response.json({ error: "File not found in storage" }, { status: 404 });
     }
 
-    const fileBuffer = await streamToBuffer(fileStream);
+    // AWS SDK v3 returns an SdkStream — use transformToByteArray() to get Uint8Array
+    let fileBuffer: Buffer;
+    if (typeof (fileBody as any).transformToByteArray === "function") {
+      // R2 / S3 path: SdkStreamMixin
+      const bytes = await (fileBody as any).transformToByteArray();
+      fileBuffer = Buffer.from(bytes);
+    } else {
+      // MinIO path: Node.js Readable stream
+      fileBuffer = await new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        const stream = fileBody as NodeJS.ReadableStream;
+        stream.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+        stream.on("end", () => resolve(Buffer.concat(chunks)));
+        stream.on("error", reject);
+      });
+    }
 
-    const extension = fileObject.originalName.toLowerCase().split('.').pop();
+    const extension = fileObject.originalName.toLowerCase().split(".").pop();
     let mimeType = "application/octet-stream";
     
     if (extension === "pdf") {
@@ -75,30 +82,30 @@ export async function POST(request: NextRequest) {
 
     console.log("🔍 Detected MIME type:", mimeType);
 
-    async function generate(question: string, fileBuffer: Buffer) {
-        const contents = [
-            { text: question },
-            {
-                inlineData: {
-                    mimeType: mimeType,
-                    data: fileBuffer.toString("base64"),
-                }
-            }
-        ];
-
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: contents
-        });
-        console.log(response.text);
-        return response.text;
-    }
-
     console.log("🚀 Sending request to Gemini...");
 
-    const result = await generate(question, fileBuffer);
-    const text = result
+    const ai = getGeminiClient();
 
+    // @google/genai v2 API: contents array with text + inlineData parts
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: question },
+            {
+              inlineData: {
+                mimeType,
+                data: fileBuffer.toString("base64"),
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const text = response.text;
     console.log("✅ Received response from Gemini");
 
     return Response.json({ 

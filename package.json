@@ -14,10 +14,9 @@
     "@auth/prisma-adapter": "^2.10.0",
     "@aws-sdk/client-s3": "^3.400.0",
     "@aws-sdk/s3-request-presigner": "^3.400.0",
-    "@google/genai": "^1.13.0",
-    "@google/generative-ai": "^0.24.1",
+    "@google/genai": "^2.30.0",
     "@hookform/resolvers": "^3.3.0",
-    "@prisma/client": "^6.13.0",
+    "@prisma/client": "6.19.3",
     "@prisma/extension-accelerate": "^2.0.2",
     "@types/bcryptjs": "^2.4.6",
     "axios": "^1.6.0",
@@ -26,8 +25,8 @@
     "formidable": "^3.5.4",
     "js-cookie": "^3.0.5",
     "minio": "^8.0.5",
-    "nanoid": "^5.1.5",
-    "next": "15.4.5",
+    "nanoid": "^6.0.2",
+    "next": "^15.5.28",
     "next-auth": "^5.0.0-beta.29",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -44,10 +43,17 @@
     "@types/react-dom": "^19",
     "dotenv-cli": "^10.0.0",
     "eslint": "^9",
-    "eslint-config-next": "15.4.5",
-    "prisma": "^6.13.0",
+    "eslint-config-next": "15.5.28",
+    "prisma": "6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.20.3",
     "typescript": "^5"
+  },
+  "overrides": {
+    "stream-json": ">=3.7.0",
+    "decode-uri-component": ">=0.5.0",
+    "picomatch": ">=4.0.7",
+    "deepmerge-ts": ">=8.0.0",
+    "postcss": ">=8.5.23"
   }
 }

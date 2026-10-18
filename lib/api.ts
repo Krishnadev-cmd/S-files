@@ -1,4 +1,17 @@
+/**
+ * ⚠️ LEGACY / DEPRECATED — DO NOT USE
+ *
+ * This file was an API client for a standalone FastAPI backend at localhost:8000.
+ * That backend no longer exists in this project.
+ *
+ * All API calls in this Next.js app go to /api/* routes (Next.js route handlers).
+ * Do NOT import from this file in new code. Use `fetch('/api/...')` directly
+ * or create a dedicated client utility in lib/ that targets Next.js routes.
+ *
+ * This file is kept for historical reference and may be removed in a future cleanup.
+ */
 import axios from 'axios';
+
 import Cookies from 'js-cookie';
 
 // API configuration
