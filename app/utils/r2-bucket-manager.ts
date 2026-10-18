@@ -95,47 +95,12 @@ export async function createR2BucketWithCors(bucketName: string): Promise<Bucket
     }
 
     // Step 3: Set up CORS configuration
-    try {
-      console.log(`🌐 Configuring CORS for R2 bucket: ${bucketName}`);
-      
-      const corsConfiguration = {
-        CORSRules: [
-          {
-            ID: "AllowWebAccess",
-            AllowedHeaders: [
-              "*",
-              "Authorization", 
-              "Content-Type", 
-              "x-amz-date", 
-              "x-amz-content-sha256",
-              "x-amz-security-token"
-            ],
-            AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
-            AllowedOrigins: ["*"],
-            ExposeHeaders: [
-              "ETag", 
-              "x-amz-version-id", 
-              "x-amz-request-id",
-              "x-amz-delete-marker"
-            ],
-            MaxAgeSeconds: 3600,
-          },
-        ],
-      };
-
-      await getR2ManagementClient().send(new PutBucketCorsCommand({
-        Bucket: bucketName,
-        CORSConfiguration: corsConfiguration,
-      }));
-      
-      console.log(`✅ CORS policy configured for R2 bucket: ${bucketName}`);
-      result.corsConfigured = true;
+    const corsResult = await configureR2BucketCors(bucketName);
+    result.corsConfigured = corsResult.success;
+    if (corsResult.success) {
       result.message += " with CORS configured";
-      
-    } catch (corsError: any) {
-      console.error(`❌ Failed to set CORS for bucket ${bucketName}:`, corsError);
-      result.message += " (Warning: CORS configuration failed - you may need to configure it manually in the R2 dashboard)";
-      // Don't fail the entire operation for CORS issues
+    } else {
+      result.message += " (Warning: CORS configuration failed - configure in R2 dashboard or set CLOUDFLARE_ACCOUNT_ID/CLOUDFLARE_API_TOKEN)";
     }
 
     result.success = true;
@@ -205,3 +170,91 @@ export async function verifyR2BucketAccess(bucketName: string): Promise<{ access
     };
   }
 }
+
+export async function configureR2BucketCors(bucketName: string): Promise<{ success: boolean; error?: string }> {
+  console.log(`🌐 Configuring CORS for R2 bucket: ${bucketName}`);
+
+  // Approach 1: Cloudflare REST API (Official & most reliable if account ID + API token are provided)
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  if (accountId && apiToken) {
+    try {
+      console.log(`⚡ Configuring CORS via Cloudflare REST API for bucket: ${bucketName}`);
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${accountId}/r2/buckets/${bucketName}/cors`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rules: [
+              {
+                allowed: {
+                  origins: ["*"],
+                  methods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
+                  headers: ["*"],
+                },
+                exposeHeaders: ["ETag", "x-amz-request-id", "x-amz-version-id"],
+                maxAgeSeconds: 3600,
+              },
+            ],
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.success !== false) {
+        console.log(`✅ CORS successfully configured via Cloudflare REST API for ${bucketName}`);
+        return { success: true };
+      } else {
+        console.warn(`⚠️ Cloudflare REST API returned warning/error for ${bucketName}:`, data?.errors || response.statusText);
+      }
+    } catch (cfError) {
+      console.warn(`⚠️ Cloudflare API call failed for ${bucketName}:`, cfError);
+    }
+  }
+
+  // Approach 2: S3-compatible PutBucketCorsCommand via AWS SDK
+  try {
+    console.log(`⚡ Configuring CORS via S3 PutBucketCorsCommand for bucket: ${bucketName}`);
+    const corsConfiguration = {
+      CORSRules: [
+        {
+          ID: "AllowWebAccess",
+          AllowedHeaders: [
+            "*",
+            "Authorization", 
+            "Content-Type", 
+            "x-amz-date", 
+            "x-amz-content-sha256",
+            "x-amz-security-token"
+          ],
+          AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
+          AllowedOrigins: ["*"],
+          ExposeHeaders: [
+            "ETag", 
+            "x-amz-version-id", 
+            "x-amz-request-id",
+            "x-amz-delete-marker"
+          ],
+          MaxAgeSeconds: 3600,
+        },
+      ],
+    };
+
+    await getR2ManagementClient().send(new PutBucketCorsCommand({
+      Bucket: bucketName,
+      CORSConfiguration: corsConfiguration,
+    }));
+    
+    console.log(`✅ CORS policy configured via S3 API for R2 bucket: ${bucketName}`);
+    return { success: true };
+  } catch (s3Error: any) {
+    console.error(`❌ Failed to set CORS via S3 API for bucket ${bucketName}:`, s3Error);
+    return { success: false, error: s3Error?.message || "Failed to configure CORS" };
+  }
+}
+

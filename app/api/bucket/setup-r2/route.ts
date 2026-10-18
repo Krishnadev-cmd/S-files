@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { s3Client, useR2 } from "@/app/utils/s3-client-config";
-import { CreateBucketCommand, PutBucketCorsCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
+import { CreateBucketCommand, HeadBucketCommand } from "@aws-sdk/client-s3";
+import { configureR2BucketCors } from "@/app/utils/r2-bucket-manager";
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,33 +56,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Set up CORS policy for the bucket
-    const corsConfiguration = {
-      CORSRules: [
-        {
-          AllowedHeaders: ["*"],
-          AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
-          AllowedOrigins: ["*"],
-          ExposeHeaders: ["ETag", "x-amz-version-id"],
-          MaxAgeSeconds: 3000,
-        },
-      ],
-    };
-
-    try {
-      await s3Client.send(new PutBucketCorsCommand({
-        Bucket: bucketName,
-        CORSConfiguration: corsConfiguration,
-      }));
-      console.log(`✅ CORS policy set for bucket: ${bucketName}`);
-    } catch (corsError) {
-      console.error(`❌ Failed to set CORS policy:`, corsError);
-      // Don't throw here, as the bucket might still work
-    }
+    const corsResult = await configureR2BucketCors(bucketName);
 
     return NextResponse.json({
       message: "R2 bucket setup completed successfully",
       bucketName,
-      corsConfigured: true,
+      corsConfigured: corsResult.success,
+      warning: corsResult.success ? undefined : "CORS configuration failed. You can configure it manually in the R2 dashboard or supply CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN.",
     });
 
   } catch (error) {
