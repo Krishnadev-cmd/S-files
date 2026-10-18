@@ -145,12 +145,23 @@ export function FileItem({
         }),
       });
 
-      const data = await res.json();
+      const responseBody = await res.text();
+      let data: { response?: string; error?: string; details?: string };
+      try {
+        data = JSON.parse(responseBody) as typeof data;
+      } catch {
+        throw new Error(
+          res.ok
+            ? "The AI service returned an invalid response."
+            : `AI service error (${res.status}): ${responseBody.slice(0, 200)}`,
+        );
+      }
+
       if (!res.ok) {
         throw new Error(data.details || data.error || "Failed to generate AI response");
       }
 
-      setResponse(data.response);
+      setResponse(data.response || "The AI service returned an empty response.");
     } catch (error) {
       console.error("AI Error:", error);
       alert(error instanceof Error ? error.message : "AI generation failed");
