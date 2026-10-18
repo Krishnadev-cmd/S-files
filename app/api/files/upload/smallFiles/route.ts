@@ -11,16 +11,16 @@ export async function POST(request: Request) {
       message: "S3_BUCKET_NAME is not defined in environment variables"
     }, { status: 500 });
   }
-  
+
   try {
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
-    
+
     if (!files || files.length === 0) {
       console.error("❌ No files provided");
-      return Response.json({ 
-        status: "fail", 
-        message: "No files provided" 
+      return Response.json({
+        status: "fail",
+        message: "No files provided"
       }, { status: 400 });
     }
 
@@ -70,18 +70,18 @@ export async function POST(request: Request) {
     );
 
     console.log(`✅ Successfully processed ${results.length} files`);
-    return Response.json({ 
-      status: "ok", 
+    return Response.json({
+      status: "ok",
       message: "Files were uploaded successfully",
-      files: results 
+      files: results
     });
 
   } catch (error) {
     console.error("❌ Error uploading files:", error);
-    return Response.json({ 
-      status: "fail", 
+    return Response.json({
+      status: "fail",
       message: "Upload error",
-      error: error instanceof Error ? error.message : "Unknown error" 
+      error: error instanceof Error ? error.message : "Unknown error"
     }, { status: 500 });
   }
 }

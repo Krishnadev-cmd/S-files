@@ -12,7 +12,7 @@ export async function GET(
 ) {
   const { id } = await params;
   console.log("📥 Downloading file directly with ID:", id);
-  
+
   try {
     if (!id || typeof id !== "string") {
       console.error("❌ Missing or invalid id:", id);
@@ -50,16 +50,16 @@ export async function GET(
 
     // Convert the Node.js stream to a buffer for the Response
     const chunks: Buffer[] = [];
-    
+
     return new Promise<Response>((resolve, reject) => {
       fileStream.on('data', (chunk: Buffer) => {
         chunks.push(chunk);
       });
-      
+
       fileStream.on('end', () => {
         const buffer = Buffer.concat(chunks);
         console.log("✅ File downloaded successfully");
-        
+
         // Return the file as a download
         resolve(new Response(buffer, {
           headers: {
@@ -68,21 +68,21 @@ export async function GET(
           },
         }));
       });
-      
+
       fileStream.on('error', (error) => {
         console.error("❌ Stream error:", error);
-        reject(Response.json({ 
-          message: "Error reading file", 
-          error: error.message 
+        reject(Response.json({
+          message: "Error reading file",
+          error: error.message
         }, { status: 500 }));
       });
     });
 
   } catch (error) {
     console.error("❌ Error downloading file:", error);
-    return Response.json({ 
-      message: "Internal server error", 
-      error: error instanceof Error ? error.message : "Unknown error" 
+    return Response.json({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error"
     }, { status: 500 });
   }
 }

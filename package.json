@@ -50,7 +50,6 @@
     "typescript": "^5"
   },
   "overrides": {
-    "stream-json": ">=3.7.0",
     "decode-uri-component": ">=0.5.0",
     "picomatch": ">=4.0.7",
     "deepmerge-ts": ">=8.0.0",
