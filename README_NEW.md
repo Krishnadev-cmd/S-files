@@ -289,6 +289,11 @@ vercel --prod          # Deploy to production
 - Check all required environment variables are set
 - Confirm S3_PORT is set to 443 for HTTPS endpoints
 
+**AI Ask Error (HTTP 503/500)**:
+- Add `GEMINI_API_KEY` to the Vercel project environment variables for the deployed environment
+- Redeploy after adding or changing the variable
+- Check the Vercel function logs for the provider error if the key is configured
+
 **Database Connection Error**:
 - Verify DATABASE_URL is correct
 - Check if Prisma schema is pushed to database

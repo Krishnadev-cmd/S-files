@@ -15,6 +15,16 @@ export async function POST(request: NextRequest) {
   console.log("🤖 Processing LLM generation request...");
   
   try {
+    if (!process.env.GEMINI_API_KEY) {
+      return Response.json(
+        {
+          error: "AI service is not configured",
+          details: "Set GEMINI_API_KEY in the Vercel project environment variables and redeploy.",
+        },
+        { status: 503 },
+      );
+    }
+
     const { fileId, question } = await request.json();
 
     if (!fileId || !question) {
@@ -108,16 +118,17 @@ export async function POST(request: NextRequest) {
     const text = response.text;
     console.log("✅ Received response from Gemini");
 
-    return Response.json({ 
-      response: text,
+    return Response.json({
+      response: text || "Gemini returned an empty response.",
       fileName: fileObject.originalName 
     });
 
   } catch (error) {
     console.error("❌ Error in LLM generation:", error);
+    const details = error instanceof Error ? error.message : "Unknown error";
     return Response.json({ 
       error: "Failed to generate response", 
-      details: error instanceof Error ? error.message : "Unknown error" 
+      details,
     }, { status: 500 });
   }
 }

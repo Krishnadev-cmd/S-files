@@ -147,7 +147,7 @@ export function FileItem({
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || data.details || "Failed to generate AI response");
+        throw new Error(data.details || data.error || "Failed to generate AI response");
       }
 
       setResponse(data.response);
