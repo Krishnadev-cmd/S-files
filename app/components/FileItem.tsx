@@ -200,24 +200,24 @@ export function FileItem({
           {/* Ask AI / Gemini */}
           <button
             onClick={() => setShowQuestionArea(!showQuestionArea)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
               showQuestionArea
-                ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/20"
-                : "bg-purple-500/10 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 border-purple-500/20"
+                ? "bg-zinc-800 text-zinc-100 border-zinc-600"
+                : "bg-zinc-850 hover:bg-zinc-800 text-zinc-200 hover:text-white border-zinc-700"
             }`}
             title="Ask questions about this file using Gemini AI"
           >
-            <span className="text-xs">✨</span>
+            <span className="text-sm">🤖</span>
             <span>Ask AI</span>
           </button>
 
           {/* Download */}
           <button
             onClick={() => downloadFile(file)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-300 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-200 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors"
             title="Download file"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span>Download</span>
@@ -227,7 +227,7 @@ export function FileItem({
           <button
             onClick={() => deleteFile(file.id)}
             disabled={file.isDeleting}
-            className="inline-flex items-center justify-center p-2 text-xs font-medium rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 disabled:opacity-40 transition-all"
+            className="inline-flex items-center justify-center p-2 text-xs font-medium rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 disabled:opacity-40 transition-colors"
             title="Delete file"
           >
             {file.isDeleting ? (
@@ -246,11 +246,11 @@ export function FileItem({
 
       {/* Gemini AI Q&A Panel */}
       {showQuestionArea && (
-        <div className="mt-4 pt-4 border-t border-white/[0.08] space-y-3">
-          <div className="flex items-center justify-between text-xs text-purple-300">
+        <div className="mt-4 pt-4 border-t border-zinc-800 space-y-3">
+          <div className="flex items-center justify-between text-xs text-zinc-300">
             <div className="flex items-center gap-1.5">
-              <span>✨</span>
-              <span className="font-medium">Gemini 2.5 AI Assistant</span>
+              <span className="text-sm">🤖</span>
+              <span className="font-medium text-zinc-200">Gemini AI Assistant</span>
               <span className="text-[10px] text-zinc-500 font-mono">({file.originalFileName})</span>
             </div>
             <button
@@ -258,7 +258,7 @@ export function FileItem({
                 setShowQuestionArea(false);
                 setResponse("");
               }}
-              className="text-zinc-500 hover:text-zinc-300"
+              className="text-zinc-400 hover:text-zinc-200 text-xs"
             >
               Close
             </button>
@@ -279,7 +279,7 @@ export function FileItem({
                   handleSubmitQuestion(promptText);
                 }}
                 disabled={isGenerating}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-zinc-800/80 hover:bg-purple-500/20 text-zinc-400 hover:text-purple-300 border border-white/[0.05] transition-colors"
+                className="text-xs px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 transition-colors"
               >
                 {promptText}
               </button>
@@ -299,16 +299,16 @@ export function FileItem({
                 }
               }}
               placeholder="Ask a question about this file's contents..."
-              className="flex-1 bg-zinc-950/80 border border-white/[0.08] focus:border-purple-500/60 rounded-xl px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none transition-colors"
+              className="flex-1 bg-zinc-950 border border-zinc-700 focus:border-blue-500 rounded-xl px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none transition-colors"
             />
             <button
               onClick={() => handleSubmitQuestion()}
               disabled={isGenerating || !question.trim()}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-purple-500/20 transition-all flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
             >
               {isGenerating ? (
                 <>
-                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
@@ -322,21 +322,21 @@ export function FileItem({
 
           {/* AI Response Box */}
           {response && (
-            <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 text-xs text-zinc-200 space-y-2 mt-2">
-              <div className="flex items-center justify-between text-purple-300 font-medium">
-                <span className="flex items-center gap-1">
-                  <span>💡</span> Answer
+            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-200 space-y-2 mt-2">
+              <div className="flex items-center justify-between text-zinc-300 font-medium">
+                <span className="flex items-center gap-1.5 text-zinc-200">
+                  <span>🤖</span> Answer
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={copyResponse}
-                    className="text-[11px] text-zinc-400 hover:text-white transition-colors"
+                    className="text-xs text-zinc-400 hover:text-white transition-colors"
                   >
                     {copied ? "Copied! ✓" : "Copy"}
                   </button>
                   <button
                     onClick={() => setResponse("")}
-                    className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+                    className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
                   >
                     Clear
                   </button>
