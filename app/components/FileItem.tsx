@@ -248,7 +248,7 @@ export function FileItem({
         <div className="mt-4 pt-4 border-t border-zinc-800 space-y-3">
           <div className="flex items-center justify-between text-xs text-zinc-300">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm">🤖</span>
+              
               <span className="font-medium text-zinc-200">Gemini AI Assistant</span>
               <span className="text-[10px] text-zinc-500 font-mono">({file.originalFileName})</span>
             </div>
