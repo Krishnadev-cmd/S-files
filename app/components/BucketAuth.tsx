@@ -43,7 +43,6 @@ export default function BucketAuth() {
       } else {
         const errorMsg = data.error || 'Invalid bucket name or password';
         if (errorMsg.includes('bucket') && errorMsg.includes('exists')) {
-          // Show setup guide for bucket-related errors
           setShowSetupGuide(true);
         }
         alert(errorMsg);
@@ -107,34 +106,30 @@ export default function BucketAuth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
+    <div className="min-h-[calc(100vh-4rem)] bg-zinc-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-cyan-500/5 blur-3xl rounded-full pointer-events-none" />
 
-      <div className="relative max-w-md w-full space-y-6">
-        {/* Main Access Form */}
-        <div className="bg-white/80 backdrop-blur-sm shadow-2xl rounded-3xl p-8 border border-white/20">
+      <div className="relative max-w-md w-full space-y-6 z-10">
+        {/* Main Access Card */}
+        <div className="bg-zinc-900/80 backdrop-blur-xl shadow-2xl rounded-2xl p-8 border border-white/[0.08]">
           <div className="text-center mb-8">
-            <div className="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-              <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-tr from-indigo-500/20 to-cyan-500/20 border border-indigo-500/30 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/10">
+              <svg className="h-7 w-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h2 className="mt-6 text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Access Your Bucket
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              Access Bucket
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Enter your bucket credentials to access your files
+            <p className="mt-1.5 text-xs text-zinc-400">
+              Enter your bucket credentials to browse and upload files
             </p>
           </div>
 
-          <form onSubmit={handleBucketAccess} className="space-y-6">
+          <form onSubmit={handleBucketAccess} className="space-y-4">
             <div>
-              <label htmlFor="bucketName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="bucketName" className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Bucket Name
               </label>
               <input
@@ -142,14 +137,14 @@ export default function BucketAuth() {
                 type="text"
                 value={bucketName}
                 onChange={(e) => setBucketName(e.target.value)}
-                placeholder="Enter bucket name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                placeholder="e.g. test1, team-docs"
+                className="w-full px-3.5 py-2.5 bg-zinc-950/80 border border-white/[0.08] focus:border-indigo-500 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Password
               </label>
               <input
@@ -157,8 +152,8 @@ export default function BucketAuth() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter bucket password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                placeholder="Bucket password"
+                className="w-full px-3.5 py-2.5 bg-zinc-950/80 border border-white/[0.08] focus:border-indigo-500 rounded-xl text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all"
                 required
               />
             </div>
@@ -166,15 +161,15 @@ export default function BucketAuth() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-indigo-500 via-blue-600 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2"
             >
               {isLoading ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Accessing...
+                  <span>Verifying...</span>
                 </>
               ) : (
                 'Access Bucket'
@@ -182,29 +177,29 @@ export default function BucketAuth() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 pt-4 border-t border-white/[0.06] text-center">
             <button
               onClick={() => setShowCreateForm(!showCreateForm)}
-              className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
             >
-              {showCreateForm ? 'Cancel' : 'Create New Bucket'}
+              {showCreateForm ? 'Cancel' : '+ Create New Bucket'}
             </button>
           </div>
         </div>
 
-        {/* Create Bucket Form */}
+        {/* Create Bucket Form Modal/Drawer */}
         {showCreateForm && (
-          <div className="bg-white/80 backdrop-blur-sm shadow-2xl rounded-3xl p-8 border border-white/20">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900">Create New Bucket</h3>
-              <p className="mt-2 text-sm text-gray-600">
-                Set up a new secure bucket for your group
+          <div className="bg-zinc-900/90 backdrop-blur-xl shadow-2xl rounded-2xl p-6 border border-white/[0.08]">
+            <div className="text-center mb-5">
+              <h3 className="text-lg font-bold text-white">Create New Bucket</h3>
+              <p className="mt-1 text-xs text-zinc-400">
+                Create a password-protected bucket on Cloudflare R2
               </p>
             </div>
 
-            <form onSubmit={handleCreateBucket} className="space-y-4">
+            <form onSubmit={handleCreateBucket} className="space-y-3.5">
               <div>
-                <label htmlFor="createBucketName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="createBucketName" className="block text-xs font-medium text-zinc-300 mb-1">
                   Bucket Name
                 </label>
                 <input
@@ -212,30 +207,30 @@ export default function BucketAuth() {
                   type="text"
                   value={createBucketName}
                   onChange={(e) => setCreateBucketName(e.target.value)}
-                  placeholder="Enter unique bucket name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="lowercase-numbers-hyphens"
+                  className="w-full px-3 py-2 bg-zinc-950/80 border border-white/[0.08] focus:border-emerald-500 rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="createPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                <label htmlFor="createPassword" className="block text-xs font-medium text-zinc-300 mb-1">
+                  Password (min 6 characters)
                 </label>
                 <input
                   id="createPassword"
                   type="password"
                   value={createPassword}
                   onChange={(e) => setCreatePassword(e.target.value)}
-                  placeholder="Create a strong password (min 6 chars)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="Set bucket password"
+                  className="w-full px-3 py-2 bg-zinc-950/80 border border-white/[0.08] focus:border-emerald-500 rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all"
                   required
                   minLength={6}
                 />
               </div>
 
               <div>
-                <label htmlFor="createConfirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="createConfirmPassword" className="block text-xs font-medium text-zinc-300 mb-1">
                   Confirm Password
                 </label>
                 <input
@@ -243,8 +238,8 @@ export default function BucketAuth() {
                   type="password"
                   value={createConfirmPassword}
                   onChange={(e) => setCreateConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="Repeat password"
+                  className="w-full px-3 py-2 bg-zinc-950/80 border border-white/[0.08] focus:border-emerald-500 rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all"
                   required
                 />
               </div>
@@ -252,15 +247,15 @@ export default function BucketAuth() {
               <button
                 type="submit"
                 disabled={isCreating}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transform transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2"
               >
                 {isCreating ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Creating...
+                    <span>Creating Bucket...</span>
                   </>
                 ) : (
                   'Create Bucket'
@@ -270,41 +265,24 @@ export default function BucketAuth() {
           </div>
         )}
 
-        {/* Info Section */}
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Secure Buckets</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>Password Protected</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span>Group Access</span>
-            </div>
+        {/* Footer info pills */}
+        <div className="flex items-center justify-center gap-4 text-[11px] text-zinc-500">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>R2 / S3 Storage</span>
           </div>
-          
-          <div className="mt-4">
-            <a 
-              href="/admin" 
-              className="text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors mr-4"
-            >
-              Admin Panel (Debug & Setup)
-            </a>
-            <button
-              onClick={() => setShowSetupGuide(true)}
-              className="text-sm text-purple-600 hover:text-purple-500 font-medium transition-colors"
-            >
-              R2 Setup Guide
-            </button>
+          <span>•</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+            <span>Password Protected</span>
           </div>
+          <span>•</span>
+          <a href="/admin" className="text-zinc-400 hover:text-white transition-colors">
+            Admin
+          </a>
         </div>
       </div>
 
-      {/* Setup Guide Modal */}
       {showSetupGuide && (
         <BucketSetupGuide onClose={() => setShowSetupGuide(false)} />
       )}

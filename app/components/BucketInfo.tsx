@@ -9,31 +9,29 @@ export default function BucketInfo() {
     return null;
   }
 
-  const handleBucketLogout = () => {
-    clearBucket();
-  };
-
   return (
-    <div className="flex items-center space-x-3">
-      {/* Current Bucket Info */}
-      <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200 dark:bg-green-950 dark:border-green-800">
-        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-        <span className="text-sm font-medium text-green-700 dark:text-green-300">
-          Bucket: {currentBucket}
+    <div className="flex items-center gap-2 bg-zinc-900/90 border border-white/[0.08] rounded-full p-1 pl-3 shadow-sm">
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span className="text-xs font-mono font-medium text-zinc-200">
+          {currentBucket}
         </span>
       </div>
       
-      {/* Switch Bucket Button */}
       <button
-        onClick={handleBucketLogout}
-        className="inline-flex items-center px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 transition-all duration-200 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
-        title="Switch to different bucket"
+        onClick={clearBucket}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.06] rounded-full transition-all duration-150"
+        title="Switch to another bucket"
       >
-        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
         </svg>
-        Switch Bucket
+        <span>Switch</span>
       </button>
     </div>
   );
 }
+

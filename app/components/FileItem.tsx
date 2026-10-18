@@ -1,5 +1,6 @@
+"use client";
+
 import { type FileProps } from "@/app/utils/types";
-import { LoadSpinner } from "@/app/components/LoadSpinner";
 import { formatBytes } from "@/app/utils/fileUploadHelpers";
 import { useState } from "react";
 
@@ -17,6 +18,59 @@ async function getPresignedUrl(file: FileProps) {
   return (await response.json()) as string;
 }
 
+function getFileExtension(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  return ext || "file";
+}
+
+function getFileIcon(extension: string) {
+  switch (extension) {
+    case "pdf":
+      return (
+        <span className="w-9 h-9 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center font-mono text-[10px] font-bold">
+          PDF
+        </span>
+      );
+    case "png":
+    case "jpg":
+    case "jpeg":
+    case "gif":
+    case "webp":
+    case "svg":
+      return (
+        <span className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center font-mono text-[10px] font-bold">
+          IMG
+        </span>
+      );
+    case "zip":
+    case "tar":
+    case "gz":
+    case "rar":
+      return (
+        <span className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center font-mono text-[10px] font-bold">
+          ZIP
+        </span>
+      );
+    case "ts":
+    case "tsx":
+    case "js":
+    case "jsx":
+    case "json":
+    case "py":
+      return (
+        <span className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-mono text-[10px] font-bold">
+          CODE
+        </span>
+      );
+    default:
+      return (
+        <span className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-mono text-[10px] font-bold">
+          DOC
+        </span>
+      );
+  }
+}
+
 export function FileItem({
   file,
   fetchFiles,
@@ -27,234 +81,270 @@ export function FileItem({
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const ext = getFileExtension(file.originalFileName);
 
   async function deleteFile(id: string) {
+    if (!confirm(`Are you sure you want to delete "${file.originalFileName}"?`)) {
+      return;
+    }
+
     setFiles((files: FileProps[]) =>
-      files.map((file: FileProps) =>
-        file.id === id ? { ...file, isDeleting: true } : file,
+      files.map((f: FileProps) =>
+        f.id === id ? { ...f, isDeleting: true } : f,
       ),
     );
     try {
-      // delete file request to the server
       await fetch(`/api/files/delete/${id}`, {
         method: "DELETE",
       });
-      // fetch files after deleting
       await fetchFiles();
     } catch (error) {
       console.error(error);
       alert("Failed to delete file");
     } finally {
       setFiles((files: FileProps[]) =>
-        files.map((file: FileProps) =>
-          file.id === id ? { ...file, isDeleting: false } : file,
+        files.map((f: FileProps) =>
+          f.id === id ? { ...f, isDeleting: false } : f,
         ),
       );
     }
   }
 
-  // Depending on the upload mode, we either download the file using the presigned url from S3 or the Nextjs API endpoint.
   const downloadFile = async (file: FileProps) => {
-    if (downloadUsingPresignedUrl) {
-      const presignedUrl = await getPresignedUrl(file);
-      window.open(presignedUrl, "_blank");
-    } else {
-      window.open(`/api/files/download/smallFiles/${file.id}`, "_blank");
+    try {
+      if (downloadUsingPresignedUrl) {
+        const presignedUrl = await getPresignedUrl(file);
+        window.open(presignedUrl, "_blank");
+      } else {
+        window.open(`/api/files/download/smallFiles/${file.id}`, "_blank");
+      }
+    } catch (err) {
+      console.error("Download error:", err);
+      alert("Failed to initiate download");
     }
   };
 
-  const handleGenerateClick = () => {
-    setShowQuestionArea(!showQuestionArea);
-  };
+  const handleSubmitQuestion = async (customQ?: string) => {
+    const q = customQ || question;
+    if (!q.trim()) return;
 
-  const handleSubmitQuestion = async () => {
-    if (!question.trim()) return;
-    
     setIsGenerating(true);
     setResponse("");
-    
+
     try {
-      console.log("🚀 Submitting question to LLM API...");
-      
-      const response = await fetch("/api/llm/generate", {
+      const res = await fetch("/api/llm/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           fileId: file.id,
-          question: question.trim(),
+          question: q.trim(),
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate response");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || data.details || "Failed to generate AI response");
       }
 
-      console.log("✅ Received response from LLM API");
       setResponse(data.response);
-      
     } catch (error) {
-      console.error("❌ Error submitting question:", error);
-      alert(`Failed to generate response: ${error instanceof Error ? error.message : "Unknown error"}`);
+      console.error("AI Error:", error);
+      alert(error instanceof Error ? error.message : "AI generation failed");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const copyResponse = () => {
+    if (!response) return;
+    navigator.clipboard.writeText(response);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-  <div className="relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 group dark:bg-neutral-900 dark:border-neutral-700">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
-          {/* File Icon */}
-          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center dark:from-blue-950 dark:to-indigo-950">
-            <svg className="w-5 h-5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          
-          {/* File Info */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-gray-900 truncate dark:text-gray-100" title={file.originalFileName}>
+    <div className="group relative bg-zinc-900/50 hover:bg-zinc-900/90 border border-white/[0.06] hover:border-white/[0.12] rounded-xl p-4 transition-all duration-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* File Info */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {getFileIcon(ext)}
+          <div className="min-w-0 flex-1">
+            <h3
+              className="text-sm font-medium text-zinc-100 truncate group-hover:text-white transition-colors"
+              title={file.originalFileName}
+            >
               {file.originalFileName}
             </h3>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-xs text-gray-500 font-medium dark:text-gray-400">
-                {formatBytes(file.fileSize)}
-              </span>
-              <span className="text-xs text-gray-400 dark:text-gray-500">•</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {file.createdAt ? new Date(file.createdAt).toLocaleDateString() : 'Recently uploaded'}
+            <div className="flex items-center gap-2 text-xs text-zinc-500 mt-0.5">
+              <span className="font-mono text-zinc-400">{formatBytes(file.fileSize)}</span>
+              <span>•</span>
+              <span>
+                {file.createdAt
+                  ? new Date(file.createdAt).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "Uploaded"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
-  <div className="flex items-center space-x-2 ml-4">
-          {/* Download Button */}
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+          {/* Ask AI / Gemini */}
           <button
-            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 dark:text-blue-300 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900 dark:hover:border-blue-700"
+            onClick={() => setShowQuestionArea(!showQuestionArea)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+              showQuestionArea
+                ? "bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/20"
+                : "bg-purple-500/10 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 border-purple-500/20"
+            }`}
+            title="Ask questions about this file using Gemini AI"
+          >
+            <span className="text-xs">✨</span>
+            <span>Ask AI</span>
+          </button>
+
+          {/* Download */}
+          <button
             onClick={() => downloadFile(file)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-zinc-300 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/[0.08] transition-all"
             title="Download file"
           >
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Download
+            <span>Download</span>
           </button>
+
+          {/* Delete */}
           <button
-            className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 dark:text-blue-300 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900 dark:hover:border-blue-700"
-            onClick={handleGenerateClick}
-            title="Ask question about this file"
-          >
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-            Generate
-          </button>
-          {/* Delete Button */}
-          <button
-            className="inline-flex items-center px-3 py-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed dark:text-red-300 dark:bg-red-950 dark:border-red-800 dark:hover:bg-red-900 dark:hover:border-red-700"
             onClick={() => deleteFile(file.id)}
             disabled={file.isDeleting}
+            className="inline-flex items-center justify-center p-2 text-xs font-medium rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 disabled:opacity-40 transition-all"
+            title="Delete file"
           >
             {file.isDeleting ? (
-              <>
-                <svg className="w-3 h-3 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Deleting...
-              </>
+              <svg className="w-3.5 h-3.5 animate-spin text-red-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
             ) : (
-              <>
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete
-              </>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
             )}
           </button>
         </div>
       </div>
 
-      {/* Question Text Area */}
+      {/* Gemini AI Q&A Panel */}
       {showQuestionArea && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-          <label htmlFor={`question-${file.id}`} className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">
-            Ask a question about this file:
-          </label>
-          <textarea
-            id={`question-${file.id}`}
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Enter your question about the PDF or file content..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-900 dark:text-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-            rows={3}
-          />
-          <div className="flex justify-end space-x-2 mt-3">
+        <div className="mt-4 pt-4 border-t border-white/[0.08] space-y-3">
+          <div className="flex items-center justify-between text-xs text-purple-300">
+            <div className="flex items-center gap-1.5">
+              <span>✨</span>
+              <span className="font-medium">Gemini 2.5 AI Assistant</span>
+              <span className="text-[10px] text-zinc-500 font-mono">({file.originalFileName})</span>
+            </div>
             <button
-              className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:text-gray-300 dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-700"
               onClick={() => {
                 setShowQuestionArea(false);
-                setQuestion("");
                 setResponse("");
               }}
+              className="text-zinc-500 hover:text-zinc-300"
             >
-              Cancel
+              Close
             </button>
+          </div>
+
+          {/* Quick Prompts */}
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              "Summarize this document",
+              "Extract key takeaways",
+              "What is the main topic?",
+            ].map((promptText) => (
+              <button
+                key={promptText}
+                type="button"
+                onClick={() => {
+                  setQuestion(promptText);
+                  handleSubmitQuestion(promptText);
+                }}
+                disabled={isGenerating}
+                className="text-[11px] px-2.5 py-1 rounded-full bg-zinc-800/80 hover:bg-purple-500/20 text-zinc-400 hover:text-purple-300 border border-white/[0.05] transition-colors"
+              >
+                {promptText}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom Input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmitQuestion();
+                }
+              }}
+              placeholder="Ask a question about this file's contents..."
+              className="flex-1 bg-zinc-950/80 border border-white/[0.08] focus:border-purple-500/60 rounded-xl px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none transition-colors"
+            />
             <button
-              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-blue-500"
-              disabled={!question.trim() || isGenerating}
-              onClick={handleSubmitQuestion}
+              onClick={() => handleSubmitQuestion()}
+              disabled={isGenerating || !question.trim()}
+              className="px-4 py-2 rounded-xl text-xs font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-purple-500/20 transition-all flex items-center gap-1.5"
             >
               {isGenerating ? (
                 <>
-                  <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Generating...
+                  <span>Thinking...</span>
                 </>
               ) : (
-                "Submit Question"
+                <span>Ask</span>
               )}
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Response Section */}
-      {response && (
-        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200 dark:bg-green-950 dark:border-green-800">
-          <div className="flex items-center mb-2">
-            <svg className="w-5 h-5 text-green-600 mr-2 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h4 className="text-sm font-medium text-green-800 dark:text-green-300">AI Response:</h4>
-          </div>
-          <div className="bg-white p-3 rounded-md border border-green-300 dark:bg-gray-900 dark:border-green-700">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap dark:text-gray-300">{response}</p>
-          </div>
-          <button
-            className="mt-2 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 dark:text-green-300 dark:bg-green-900 dark:border-green-700 dark:hover:bg-green-800"
-            onClick={() => setResponse("")}
-          >
-            Clear Response
-          </button>
-        </div>
-      )}
-
-      {/* Loading Overlay */}
-      {file.isDeleting && (
-        <div className="absolute inset-0 bg-white bg-opacity-80 rounded-lg flex items-center justify-center dark:bg-black dark:bg-opacity-80">
-          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-            <LoadSpinner size="small" />
-            <span>Deleting file...</span>
-          </div>
+          {/* AI Response Box */}
+          {response && (
+            <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 text-xs text-zinc-200 space-y-2 mt-2">
+              <div className="flex items-center justify-between text-purple-300 font-medium">
+                <span className="flex items-center gap-1">
+                  <span>💡</span> Answer
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={copyResponse}
+                    className="text-[11px] text-zinc-400 hover:text-white transition-colors"
+                  >
+                    {copied ? "Copied! ✓" : "Copy"}
+                  </button>
+                  <button
+                    onClick={() => setResponse("")}
+                    className="text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <p className="whitespace-pre-wrap leading-relaxed text-zinc-300">{response}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

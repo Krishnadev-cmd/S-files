@@ -9,8 +9,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 // ✅ Proper way to inject head metadata
 export const metadata: Metadata = {
-  title: "Your App Title",
-  description: "App description here",
+  title: "S-Files — Cloud Storage & AI Intelligence",
+  description: "Secure, high-speed S3 & Cloudflare R2 file storage with Gemini AI document intelligence.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

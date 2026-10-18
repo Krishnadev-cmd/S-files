@@ -17,20 +17,38 @@ export function UploadFilesS3PresignedUrl({
   onUploadSuccess,
 }: UploadFilesFormProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { currentBucket } = useBucket();
 
+  const handleFileChange = (newFiles: FileList | null) => {
+    if (!newFiles) return;
+    const added = Array.from(newFiles);
+    setSelectedFiles((prev) => [...prev, ...added]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const uploadToServer = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // check if files are selected
-    if (!fileInputRef.current?.files?.length) {
-      alert("Please, select file you want to upload");
+    
+    const filesToUpload = selectedFiles.length > 0
+      ? selectedFiles
+      : fileInputRef.current?.files
+      ? Array.from(fileInputRef.current.files)
+      : [];
+
+    if (!filesToUpload.length) {
+      alert("Please select at least one file to upload");
       return;
     }
-    // get File[] from FileList
-    const files = Object.values(fileInputRef.current.files);
-    // validate files
-    const filesInfo: ShortFileProp[] = files.map((file) => ({
+
+    const filesInfo: ShortFileProp[] = filesToUpload.map((file) => ({
       originalFileName: file.name,
       fileSize: file.size,
     }));
@@ -43,18 +61,30 @@ export function UploadFilesS3PresignedUrl({
       alert(filesValidationResult);
       return;
     }
+
     setIsLoading(true);
 
-    const presignedUrls = await getPresignedUrls(filesInfo, currentBucket!);
-    if (!presignedUrls?.length) {
-      alert("Something went wrong, please try again later");
-      return;
+    try {
+      const presignedUrls = await getPresignedUrls(filesInfo, currentBucket!);
+      if (!presignedUrls?.length) {
+        alert("Could not generate presigned upload URLs. Please check bucket configuration.");
+        setIsLoading(false);
+        return;
+      }
+
+      await handleUpload(filesToUpload, presignedUrls, () => {
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        onUploadSuccess();
+      }, currentBucket!);
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed. Please check CORS configuration or network connection.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // upload files to s3 endpoint directly and save file info to db
-    await handleUpload(files, presignedUrls, onUploadSuccess, currentBucket!);
-
-    setIsLoading(false);
   };
 
   return (
@@ -63,6 +93,9 @@ export function UploadFilesS3PresignedUrl({
       fileInputRef={fileInputRef}
       uploadToServer={uploadToServer}
       maxFileSize={MAX_FILE_SIZE_S3_ENDPOINT}
+      selectedFiles={selectedFiles}
+      onFilesSelected={handleFileChange}
+      onRemoveFile={removeFile}
     />
   );
 }

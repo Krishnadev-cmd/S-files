@@ -29,9 +29,12 @@ export type LoadSpinnerProps = {
 
 export type UploadFilesFormUIProps = {
   isLoading: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   uploadToServer: (event: React.FormEvent<HTMLFormElement>) => void;
   maxFileSize: number;
+  selectedFiles?: File[];
+  onFilesSelected?: (files: FileList | null) => void;
+  onRemoveFile?: (index: number) => void;
 };
 
 export type FileInDBProp = {
