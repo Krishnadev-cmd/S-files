@@ -29,6 +29,25 @@ export interface BucketCreationResult {
   error?: string;
 }
 
+function getAllowedOrigins(): string[] {
+  const origins = new Set<string>([
+    "http://localhost:3000",
+    "https://localhost:3000",
+  ]);
+
+  for (const value of [
+    process.env.NEXTAUTH_URL,
+    process.env.APP_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+  ]) {
+    if (value) {
+      origins.add(value.replace(/\/$/, ""));
+    }
+  }
+
+  return [...origins];
+}
+
 export async function createR2BucketWithCors(bucketName: string): Promise<BucketCreationResult> {
   const result: BucketCreationResult = {
     success: false,
@@ -193,7 +212,7 @@ export async function configureR2BucketCors(bucketName: string): Promise<{ succe
             rules: [
               {
                 allowed: {
-                  origins: ["*"],
+                  origins: getAllowedOrigins(),
                   methods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
                   headers: ["*"],
                 },
@@ -233,7 +252,7 @@ export async function configureR2BucketCors(bucketName: string): Promise<{ succe
             "x-amz-security-token"
           ],
           AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
-          AllowedOrigins: ["*"],
+          AllowedOrigins: getAllowedOrigins(),
           ExposeHeaders: [
             "ETag", 
             "x-amz-version-id", 
@@ -257,4 +276,3 @@ export async function configureR2BucketCors(bucketName: string): Promise<{ succe
     return { success: false, error: s3Error?.message || "Failed to configure CORS" };
   }
 }
-

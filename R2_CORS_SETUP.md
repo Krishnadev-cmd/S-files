@@ -19,7 +19,7 @@ Click on your bucket, then go to Settings > CORS Policy and add this configurati
   {
     "AllowedOrigins": [
       "http://localhost:3000",
-      "https://yourdomain.com"
+      "https://s-files.vercel.app"
     ],
     "AllowedMethods": [
       "GET",
@@ -40,7 +40,9 @@ Click on your bucket, then go to Settings > CORS Policy and add this configurati
 ```
 
 ### Step 3: Update for Production
-When deploying to production, replace `"http://localhost:3000"` with your actual domain.
+When deploying to production, replace `"http://localhost:3000"` with your actual domain. For this deployment, the origin is `"https://s-files.vercel.app"` (do not include a trailing slash).
+
+After changing the policy, use the **Setup R2 Bucket** action in the bucket administration screen once for any bucket that was created before this policy was added. The upload endpoint now checks and applies the policy before issuing browser-upload URLs, so it returns a configuration error instead of generating URLs that the browser cannot use.
 
 ### Step 4: Alternative - Manual Bucket Creation
 If automatic bucket creation fails, manually create buckets in the Cloudflare R2 dashboard:
@@ -57,6 +59,7 @@ Make sure these are set correctly:
 - `AWS_SECRET_ACCESS_KEY`: Your R2 secret key  
 - `S3_ENDPOINT`: Your R2 endpoint (e.g., `https://abc123.r2.cloudflarestorage.com`)
 - `AWS_REGION`: Set to `auto` for R2
+- `APP_URL`: The public URL of the deployed app, for example `https://s-files.vercel.app`
 
 ## Testing
 Use the debug endpoint: `/api/bucket/debug?bucket=test-bucket` to check configuration.

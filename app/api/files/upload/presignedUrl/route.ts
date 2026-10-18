@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ShortFileProp, PresignedUrlProp } from "@/app/utils/types";
 import { createPresignedUrlToUpload } from "@/app/utils/s3-file-management";
+import { useR2 } from "@/app/utils/s3-client-config";
+import { configureR2BucketCors } from "@/app/utils/r2-bucket-manager";
 import { nanoid } from "nanoid";
 
 const expiry = 60 * 60; // 1 hour
+const configuredCorsBuckets = new Set<string>();
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +27,21 @@ export async function POST(request: NextRequest) {
         { message: "Bucket name is required" },
         { status: 400 }
       );
+    }
+
+    if (useR2 && !configuredCorsBuckets.has(bucketName)) {
+      const corsResult = await configureR2BucketCors(bucketName);
+      if (!corsResult.success) {
+        return NextResponse.json(
+          {
+            message:
+              "R2 CORS is not configured for this bucket. Configure the bucket CORS policy in Cloudflare or provide a token with bucket CORS permissions.",
+            details: corsResult.error,
+          },
+          { status: 503 },
+        );
+      }
+      configuredCorsBuckets.add(bucketName);
     }
 
     const presignedUrls = [] as PresignedUrlProp[];
