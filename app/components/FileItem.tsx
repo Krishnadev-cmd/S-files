@@ -185,10 +185,10 @@ export function FileItem({
               <span>
                 {file.createdAt
                   ? new Date(file.createdAt).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
                   : "Uploaded"}
               </span>
             </div>
@@ -200,14 +200,13 @@ export function FileItem({
           {/* Ask AI / Gemini */}
           <button
             onClick={() => setShowQuestionArea(!showQuestionArea)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-              showQuestionArea
-                ? "bg-zinc-800 text-zinc-100 border-zinc-600"
-                : "bg-zinc-850 hover:bg-zinc-800 text-zinc-200 hover:text-white border-zinc-700"
-            }`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${showQuestionArea
+              ? "bg-zinc-800 text-zinc-100 border-zinc-600"
+              : "bg-zinc-850 hover:bg-zinc-800 text-zinc-200 hover:text-white border-zinc-700"
+              }`}
             title="Ask questions about this file using Gemini AI"
           >
-            <span className="text-sm">🤖</span>
+
             <span>Ask AI</span>
           </button>
 
